@@ -1,39 +1,137 @@
 # DevShorts AI
 
-#### 介绍
-{**以下是 Gitee 平台说明，您可以替换此简介**
-Gitee 是 OSCHINA 推出的基于 Git 的代码托管平台（同时支持 SVN）。专为开发者提供稳定、高效、安全的云端软件开发协作平台
-无论是个人、团队、或是企业，都能够用 Gitee 实现代码托管、项目管理、协作开发。企业项目请看 [https://gitee.com/enterprises](https://gitee.com/enterprises)}
+DevShorts AI is an open-source MVP skeleton for an AI short-video workflow studio. It targets developers and AI builders who want a demoable pipeline for script extraction, AI rewriting, TTS, digital human generation, B-roll/rendering, and publishing automation.
 
-#### 软件架构
-软件架构说明
+The current third-phase MVP is semi-real: it still runs without heavy local media tooling, but the API and UI now expose the task shape needed for local file input, topics, speaking style, artifacts, and future real adapters.
 
+## Stack
 
-#### 安装教程
+- Frontend: Next.js, TypeScript, TailwindCSS, shadcn-style UI primitives
+- Backend: FastAPI, Python
+- Task queue: in-memory task store, designed to swap to Redis/Celery
+- AI providers: mock provider now, OpenAI/Ollama placeholders
+- Media providers: ffmpeg semi-real adapters plus mock/edge-tts/FishSpeech seams for TTS, yt-dlp, Whisper/faster-whisper, digital human, B-roll, and platform publishing
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+## Quick Start
 
-#### 使用说明
+```bash
+cp .env.example .env
+npm install
+python -m venv apps/api/.venv
+apps/api/.venv/Scripts/Activate.ps1
+pip install -r apps/api/requirements.txt
+```
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+Start the API:
 
-#### 参与贡献
+```bash
+npm run dev:api
+```
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+Start the web app in another terminal:
 
+```bash
+npm run dev:web
+```
 
-#### 特技
+Open:
 
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+- Web: http://localhost:3000
+- API docs: http://localhost:8000/docs
+- Health: http://localhost:8000/api/health
+
+## Optional Local Tools
+
+The app works without these tools. Install them only when testing semi-real media adapters:
+
+- `ffmpeg` for audio extraction and render probing.
+- `yt-dlp` for downloading source videos from URLs.
+- `whisper` or `faster-whisper` for local ASR.
+- `edge-tts` for quick local voice synthesis.
+- FishSpeech-compatible HTTP service for local neural TTS.
+
+If a semi-real dependency or provider is missing, DevShorts AI should fall back gracefully to mock artifacts and keep the task inspectable instead of failing the whole demo.
+
+Install Whisper CLI for real ASR:
+
+```bash
+pip install -r apps/api/requirements-asr.txt
+```
+
+Then set `ASR_PROVIDER=whisper_cli` from Settings or `.env`. The first run downloads the selected Whisper model weights, so `tiny` is recommended for a fast smoke test and `base` or above for better quality.
+
+### TTS Providers
+
+The MVP supports three TTS modes through `.env`:
+
+- `TTS_PROVIDER=mock`: writes a silent `voice.wav`, best for guaranteed demos.
+- `TTS_PROVIDER=edge_tts`: generates a real voice with `edge-tts`, then converts it to `voice.wav` through ffmpeg.
+- `TTS_PROVIDER=fishspeech`: calls a FishSpeech-compatible HTTP endpoint, defaulting to `http://127.0.0.1:7860/v1/audio/speech`.
+
+FishSpeech is wired as an adapter, not bundled as a heavy model runtime. Start your FishSpeech service separately, then set:
+
+```bash
+TTS_PROVIDER=fishspeech
+FISHSPEECH_BASE_URL=http://127.0.0.1:7860/v1/audio/speech
+FISHSPEECH_VOICE=default
+```
+
+## MVP Flow
+
+Open Studio, enter a video URL or local file path, create a task, and watch the pipeline advance:
+
+Extract script -> AI rewrite -> TTS -> digital human -> auto edit -> title/cover -> publish
+
+Task creation supports two modes:
+
+- `mock`: deterministic in-memory progress and mock artifacts.
+- `semi_real`: attempts local adapters where available, with mock fallback for unfinished or missing pieces.
+
+Semi-real tasks also write:
+
+- `transcript_segments.json` when Whisper/faster-whisper returns timing segments.
+- `title_cover.json` with title variants, hashtags, and cover prompts.
+- `publish_draft.json` with final video path, platform targets, and manual confirmation status.
+
+Settings can also be edited from the web UI. The API persists runtime provider configuration to:
+
+```text
+apps/api/artifacts/runtime-settings.json
+```
+
+New `semi_real` tasks read this runtime config immediately, so you can switch `mock`, `whisper_cli`, `edge_tts`, `fishspeech`, `openai`, or `ollama` without restarting the UI.
+
+Example API payload:
+
+```json
+{
+  "source_url": "https://example.com/video",
+  "local_file_path": null,
+  "title": "DevShorts AI demo",
+  "mode": "semi_real",
+  "topic": "open-source AI video workflows",
+  "speaking_style": "technical"
+}
+```
+
+## Project Layout
+
+```text
+apps/
+  web/      Next.js control console
+  api/      FastAPI mock workflow API
+packages/
+  shared/   Shared TypeScript contracts
+docs/
+  ARCHITECTURE.md
+  ROADMAP.md
+  API.md
+```
+
+## Development Notes
+
+- Heavy model inference and real publishing are not implemented in this MVP.
+- Every workflow service has a dedicated module for future replacement.
+- The API keeps tasks in memory. Restarting the API clears task history.
+- Generated artifacts are represented in the task `artifacts` map until durable storage is added.
+- Generated media artifacts and runtime settings are ignored by git.

@@ -1,0 +1,20 @@
+{
+  "name": "devshorts-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI short video workflow studio for developers and AI builders.",
+  "workspaces": [
+    "apps/web",
+    "packages/shared"
+  ],
+  "scripts": {
+    "dev:web": "npm --workspace apps/web run dev",
+    "build:web": "npm --workspace apps/web run build",
+    "lint:web": "npm --workspace apps/web run lint",
+    "typecheck": "npm --workspace apps/web run typecheck",
+    "dev:api": "cd apps/api && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

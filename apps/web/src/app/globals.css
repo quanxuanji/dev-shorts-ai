@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 224 37% 6%;
+  --foreground: 213 33% 94%;
+  --card: 224 36% 10%;
+  --card-foreground: 213 33% 94%;
+  --border: 221 28% 20%;
+  --input: 221 28% 18%;
+  --ring: 189 94% 58%;
+  --primary: 189 94% 58%;
+  --primary-foreground: 222 48% 9%;
+  --muted: 224 24% 14%;
+  --muted-foreground: 216 16% 66%;
+  --accent: 262 83% 62%;
+  --accent-foreground: 213 33% 94%;
+  --font-sans: "Aptos", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", "JetBrains Mono", "SFMono-Regular", ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #080d19;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 16% 8%, rgba(34, 211, 238, 0.16), transparent 28rem),
+    radial-gradient(circle at 84% 6%, rgba(124, 58, 237, 0.22), transparent 28rem),
+    linear-gradient(135deg, #070b15 0%, #0b1020 46%, #0a1020 100%);
+  color: hsl(var(--foreground));
+}
+
+body::before {
+  pointer-events: none;
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent 76%);
+}
+
+@keyframes slow-glow {
+  0%, 100% {
+    opacity: 0.55;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes connector-flow {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 48px 0;
+  }
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(420%);
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-slow-glow {
+  animation: slow-glow 2.8s ease-in-out infinite;
+}
+
+.animate-gradient-shift {
+  background-size: 220% 220%;
+  animation: gradient-shift 9s ease infinite;
+}
+
+.terminal-scanline::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent, rgba(34, 211, 238, 0.08), transparent);
+  animation: scanline 6s linear infinite;
+}
+
+.workflow-connector {
+  background-image: linear-gradient(90deg, rgba(34, 211, 238, 0.15), rgba(167, 139, 250, 0.65), rgba(34, 211, 238, 0.15));
+  background-size: 48px 2px;
+  animation: connector-flow 2.8s linear infinite;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.35);
+}
