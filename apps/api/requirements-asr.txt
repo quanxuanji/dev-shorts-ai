@@ -1,0 +1,3 @@
+# Optional real ASR runtime. Keep this separate from the default API install
+# because Whisper pulls ML dependencies and downloads model weights on first use.
+openai-whisper==20250625

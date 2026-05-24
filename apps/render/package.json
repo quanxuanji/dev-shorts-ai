@@ -1,0 +1,25 @@
+{
+  "name": "@devshorts/render",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "studio": "remotion studio",
+    "typecheck": "tsc --noEmit",
+    "render": "remotion render DevShortsPortrait out/devshorts.mp4 --props=examples/sample-manifest.json"
+  },
+  "remotion": {
+    "entryPoint": "./src/index.ts"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.441",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "^4.0.441",
+    "typescript": "^5.5.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0"
+  }
+}
