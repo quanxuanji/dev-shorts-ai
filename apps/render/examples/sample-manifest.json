@@ -1,0 +1,27 @@
+{
+  "manifest": {
+    "title": "DevShorts AI",
+    "subtitle": "SEMI_REAL PIPELINE",
+    "fps": 30,
+    "scenes": [
+      {
+        "title": "把原始素材变成开发者短视频",
+        "caption": ["输入视频或主题", "AI 重写成更适合口播的脚本"],
+        "audioPath": "",
+        "duration": 3.2
+      },
+      {
+        "title": "旁白、字幕、时间线统一由 manifest 驱动",
+        "caption": ["每个 scene 声明标题、字幕、音频和时长", "Remotion 只负责可靠渲染"],
+        "audioPath": "",
+        "duration": 3.6
+      },
+      {
+        "title": "输出竖屏 final.mp4",
+        "caption": ["544x960 预览尺寸", "后续可接入 API 生成的 voice.wav"],
+        "audioPath": "",
+        "duration": 3
+      }
+    ]
+  }
+}

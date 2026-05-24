@@ -10,7 +10,7 @@ from app.models import RuntimeSettings, UpdateRuntimeSettingsRequest
 class SettingsService:
     def __init__(self) -> None:
         self._lock = threading.RLock()
-        self.path = Path(settings.artifacts_dir).parent / "runtime-settings.json"
+        self.path = self._artifacts_root() / "runtime-settings.json"
         self._settings = self._load()
 
     def get(self) -> RuntimeSettings:
@@ -32,6 +32,7 @@ class SettingsService:
             openai_api_key=settings.openai_api_key,
             openai_base_url=settings.openai_base_url,
             openai_model=settings.openai_model,
+            openai_timeout_seconds=settings.openai_timeout_seconds,
             ollama_base_url=settings.ollama_base_url,
             ollama_model=settings.ollama_model,
             asr_provider=self._coerce("asr_provider", settings.asr_provider),
@@ -42,6 +43,10 @@ class SettingsService:
             fishspeech_base_url=settings.fishspeech_base_url,
             fishspeech_api_key=settings.fishspeech_api_key,
             fishspeech_voice=settings.fishspeech_voice,
+            fishspeech_reference_audio_path=settings.fishspeech_reference_audio_path,
+            fishspeech_reference_text=settings.fishspeech_reference_text,
+            fishspeech_reference_text_path=settings.fishspeech_reference_text_path,
+            fishspeech_use_memory_cache=self._coerce("fishspeech_use_memory_cache", settings.fishspeech_use_memory_cache),
             fishspeech_timeout_seconds=settings.fishspeech_timeout_seconds,
         )
 
@@ -68,6 +73,13 @@ class SettingsService:
             return RuntimeSettings(**{key: value}).model_dump()[key]
         except Exception:
             return RuntimeSettings().model_dump()[key]
+
+    def _artifacts_root(self) -> Path:
+        artifacts_dir = Path(settings.artifacts_dir)
+        if not artifacts_dir.is_absolute():
+            api_root = Path(__file__).resolve().parents[2]
+            artifacts_dir = api_root / artifacts_dir
+        return artifacts_dir.parent.resolve()
 
 
 settings_service = SettingsService()

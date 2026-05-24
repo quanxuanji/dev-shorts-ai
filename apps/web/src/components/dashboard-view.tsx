@@ -36,11 +36,11 @@ const fallbackSystem: SystemStatus = {
 };
 
 const initialModels: ModelStatus[] = [
-  { name: "Whisper ASR", kind: "ASR", state: "mock", latency_ms: 126, provider: "MockASR", note: "faster-whisper reserved", tokens_per_second: 38, queue: 1, gpu_percent: 18 },
-  { name: "Qwen LLM", kind: "LLM", state: "mock", latency_ms: 194, provider: "MockProvider", note: "DeepSeek/GLM ready", tokens_per_second: 132, queue: 3, gpu_percent: 64 },
-  { name: "FishSpeech TTS", kind: "TTS", state: "mock", latency_ms: 248, provider: "MockTTS", note: "MiniMax reserved", tokens_per_second: 28, queue: 2, gpu_percent: 36 },
-  { name: "LatentSync", kind: "Digital Human", state: "standby", latency_ms: 420, provider: "Placeholder", note: "Wav2Lip reserved", tokens_per_second: 0, queue: 1, gpu_percent: 42 },
-  { name: "FFmpeg Renderer", kind: "Render", state: "mock", latency_ms: 156, provider: "MockRender", note: "ffmpeg adapter reserved", tokens_per_second: 0, queue: 1, gpu_percent: 18 }
+  { name: "Whisper ASR", kind: "ASR", state: "mock", latency_ms: 126, provider: "FallbackASR", note: "faster-whisper optional", tokens_per_second: 38, queue: 1, gpu_percent: 18 },
+  { name: "Script LLM", kind: "LLM", state: "mock", latency_ms: 194, provider: "FallbackProvider", note: "OpenAI/Ollama ready", tokens_per_second: 132, queue: 3, gpu_percent: 64 },
+  { name: "FishSpeech TTS", kind: "TTS", state: "mock", latency_ms: 248, provider: "FallbackTTS", note: "edge-tts/FishSpeech adapter", tokens_per_second: 28, queue: 2, gpu_percent: 36 },
+  { name: "Subtitle Builder", kind: "Subtitles", state: "standby", latency_ms: 96, provider: "Local", note: "SRT timing from voice duration", tokens_per_second: 0, queue: 1, gpu_percent: 8 },
+  { name: "FFmpeg Renderer", kind: "Render", state: "mock", latency_ms: 156, provider: "FallbackRender", note: "ffmpeg adapter", tokens_per_second: 0, queue: 1, gpu_percent: 18 }
 ];
 
 function clamp(value: number, min: number, max: number) {

@@ -1,9 +1,9 @@
 # Roadmap
 
-## Phase 1 - Mock Studio Skeleton
+## Phase 1 - Studio Skeleton
 
 - Next.js dashboard, studio, and settings screens.
-- FastAPI mock workflow endpoints.
+- FastAPI workflow endpoints with fallback responses.
 - In-memory task store with simulated pipeline progress.
 - Provider/service adapter structure.
 - Architecture, API, and roadmap documentation.
@@ -16,28 +16,25 @@
 - Expose generated artifacts on task responses.
 - Keep graceful fallback behavior when optional local tools are missing.
 
-## Phase 3 - Semi-real MVP
+## Phase 3 - Voiceover Script MVP
 
 - Document optional ffmpeg, yt-dlp, Whisper/faster-whisper, and edge-tts dependencies.
-- Preserve mock-first onboarding while preparing semi-real adapters.
-- Keep publishing as a safe placeholder until platform providers are explicit.
+- Keep deterministic fallback mode for smoke tests while making `semi_real` the product path.
 - Add editable runtime settings for provider routing.
 - Add Whisper CLI and optional faster-whisper ASR paths.
 - Improve subtitle splitting for English and Chinese scripts.
 - Generate `transcript_segments.json` from real ASR runs.
-- Generate `title_cover.json` for publishing drafts.
-- Generate `publish_draft.json` as an assisted publishing handoff manifest.
+- Generate `title_cover.json` with title variants, hashtags, and cover prompts.
+- Generate `voice.wav` through edge-tts or a FishSpeech-compatible HTTP endpoint.
 
 ## Next
 
 - Real ASR quality pass with model download UX and language/model selection polish.
 - Script template library for Chinese developer short videos.
 - Subtitle alignment from TTS word boundaries or ASR segment retiming.
-- Playwright publishing assistant with explicit user confirmation.
-- Real TTS provider integration beyond edge-tts and FishSpeech HTTP.
-- Digital human adapter for lip sync or avatar generation.
+- FishSpeech setup guide, connection test, voice selection, and retry/error display.
+- Additional TTS providers beyond edge-tts and FishSpeech HTTP.
 - B-roll search/import and render composition.
-- Assisted platform publishing with explicit user confirmation.
 - Redis/Celery task backend and durable artifact storage.
 - SSE or WebSocket task updates.
 - Docker production profile and deployment guide.

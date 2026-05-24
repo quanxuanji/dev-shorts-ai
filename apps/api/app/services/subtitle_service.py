@@ -13,11 +13,11 @@ class SubtitleService:
         chunks = self._chunk_script(script)
         lines: list[str] = []
         total_seconds = duration_seconds or self._estimate_duration_seconds(script, len(chunks))
-        cue_seconds = max(2.0, min(4.5, total_seconds / max(len(chunks), 1)))
+        cue_seconds = total_seconds / max(len(chunks), 1)
 
         for index, chunk in enumerate(chunks, start=1):
             start_seconds = (index - 1) * cue_seconds
-            end_seconds = min(start_seconds + cue_seconds, total_seconds)
+            end_seconds = total_seconds if index == len(chunks) else min(start_seconds + cue_seconds, total_seconds)
             lines.extend(
                 [
                     str(index),
@@ -47,12 +47,31 @@ class SubtitleService:
                 continue
             for start in range(0, len(words), 12):
                 chunks.append(" ".join(words[start : start + 12]))
-        return chunks[:12]
+        return chunks[:24]
 
     def _chunk_cjk(self, sentence: str) -> list[str]:
-        if len(sentence) <= 22:
+        if len(sentence) <= 28:
             return [sentence]
-        return [sentence[index : index + 18] for index in range(0, len(sentence), 18)]
+        units = re.findall(r"\s+|[A-Za-z0-9][A-Za-z0-9+._-]*|[\u4e00-\u9fff]|[^\s]", sentence)
+        chunks: list[str] = []
+        current = ""
+        for unit in units:
+            next_value = current + unit
+            if current and len(next_value) > 22 and re.search(r"[，,；;。！？!?]$", current):
+                chunks.append(current.strip())
+                current = unit.lstrip()
+                continue
+            if current and len(next_value) > 26:
+                chunks.append(current.strip())
+                current = unit.lstrip()
+                continue
+            current = next_value
+        if current:
+            chunks.append(current.strip())
+        if len(chunks) > 1 and re.fullmatch(r"[。！？!?，,；;]", chunks[-1]):
+            chunks[-2] = f"{chunks[-2]}{chunks[-1]}"
+            chunks.pop()
+        return chunks
 
     def _contains_cjk(self, value: str) -> bool:
         return bool(re.search(r"[\u4e00-\u9fff]", value))

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bot, Gauge, Settings, WandSparkles } from "lucide-react";
+import { Gauge, Languages, Settings, Sparkles, WandSparkles } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -14,38 +14,45 @@ const navItems: Array<{ href: string; labelKey: "dashboard" | "studio" | "settin
 
 export function AppShell({ children, active }: { children: React.ReactNode; active: string }) {
   const { locale, setLocale, t } = useI18n();
+  const isStudio = active === "/studio";
 
   return (
-    <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl gap-5 px-4 py-5 lg:px-6">
-      <aside className="hidden w-64 shrink-0 rounded-lg border border-white/10 bg-slate-950/55 p-4 shadow-violet backdrop-blur-xl lg:block">
-        <Link href="/" className="flex items-center gap-3 rounded-md border border-cyan-300/20 bg-cyan-300/10 p-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-cyan-300 text-slate-950">
-            <Bot className="h-5 w-5" />
+    <main
+      className={cn(
+        "relative z-10 mx-auto flex w-full max-w-none flex-col text-[#F5F5F7] lg:flex-row",
+        isStudio ? "h-dvh overflow-hidden px-3 py-3 lg:px-4 lg:py-4" : "h-dvh overflow-y-auto px-4 py-4 lg:px-6 lg:py-6"
+      )}
+    >
+      <header className="mb-4 flex items-center justify-between rounded-2xl border border-[#23252B]/80 bg-[#111214]/80 px-3 py-2 backdrop-blur-xl lg:hidden">
+        <Link href="/" className="flex min-w-0 items-center gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F5F5F7] text-[#0B0B0C]">
+            <Sparkles className="h-4 w-4" />
           </span>
-          <span>
-            <span className="block text-sm font-bold tracking-wide text-slate-50">DevShorts AI</span>
-            <span className="font-mono text-xs text-cyan-200">{t.nav.pipelineStudio}</span>
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-semibold">DevShorts AI</span>
+            <span className="block truncate text-xs text-[#9EA3AE]">{t.nav.pipelineStudio}</span>
           </span>
         </Link>
-        <div className="mt-4 rounded-md border border-white/10 bg-slate-950/70 p-1">
-          <div className="mb-1 px-2 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500">{t.nav.language}</div>
-          <div className="grid grid-cols-2 gap-1">
-            {(["zh", "en"] as const).map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => setLocale(item)}
-                className={cn(
-                  "h-8 rounded text-xs font-semibold transition",
-                  locale === item ? "bg-cyan-300 text-slate-950" : "text-slate-400 hover:bg-white/10 hover:text-slate-100"
-                )}
-              >
-                {item === "zh" ? "中文" : "EN"}
-              </button>
-            ))}
-          </div>
-        </div>
-        <nav className="mt-6 space-y-2">
+        <button
+          type="button"
+          onClick={() => setLocale(locale === "zh" ? "en" : "zh")}
+          className="flex h-9 items-center gap-2 rounded-xl px-3 text-xs text-[#9EA3AE] transition hover:bg-white/[0.06] hover:text-[#F5F5F7]"
+        >
+          <Languages className="h-4 w-4" />
+          {locale === "zh" ? "中文" : "EN"}
+        </button>
+      </header>
+
+      <aside className="hidden w-[76px] shrink-0 flex-col items-center gap-4 border-r border-[#23252B]/70 py-2 lg:flex">
+        <Link
+          href="/"
+          className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F5F5F7] text-[#0B0B0C] transition hover:-translate-y-0.5"
+          aria-label="DevShorts AI"
+        >
+          <Sparkles className="h-4 w-4" />
+        </Link>
+
+        <nav className="flex flex-col gap-2" aria-label={t.nav.pipelineStudio}>
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = active === item.href;
@@ -54,25 +61,33 @@ export function AppShell({ children, active }: { children: React.ReactNode; acti
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-slate-400 transition hover:bg-white/5 hover:text-slate-100",
-                  isActive && "bg-violet-400/15 text-violet-100 ring-1 ring-violet-300/20"
+                  "group relative flex h-11 w-11 items-center justify-center rounded-2xl text-[#777D89] transition duration-200 hover:-translate-y-0.5 hover:bg-white/[0.06] hover:text-[#F5F5F7]",
+                  isActive && "bg-white/[0.07] text-[#F5F5F7] ring-1 ring-white/[0.08]"
                 )}
+                aria-label={t.nav[item.labelKey]}
+                aria-current={isActive ? "page" : undefined}
+                title={t.nav[item.labelKey]}
               >
                 <Icon className="h-4 w-4" />
-                {t.nav[item.labelKey]}
+                {isActive ? <span className="absolute -right-[19px] h-5 w-px rounded-full bg-[#7C5CFF]" /> : null}
               </Link>
             );
           })}
         </nav>
-        <div className="mt-8 rounded-md border border-white/10 bg-slate-900/70 p-3">
-          <div className="font-mono text-[11px] uppercase text-slate-500">{t.nav.runtime}</div>
-          <div className="mt-2 flex items-center justify-between text-sm">
-            <span>{t.nav.mockMode}</span>
-            <span className="rounded bg-emerald-300/10 px-2 py-1 font-mono text-xs text-emerald-200">{t.nav.active}</span>
-          </div>
-        </div>
+
+        <button
+          type="button"
+          onClick={() => setLocale(locale === "zh" ? "en" : "zh")}
+          className="mt-auto flex h-11 w-11 flex-col items-center justify-center rounded-2xl text-[#777D89] transition hover:bg-white/[0.06] hover:text-[#F5F5F7]"
+          title={t.nav.language}
+          aria-label={locale === "zh" ? "Switch to English" : "切换到中文"}
+        >
+          <Languages className="h-3.5 w-3.5" />
+          <span className="mt-0.5 font-mono text-[9px]">{locale === "zh" ? "中" : "EN"}</span>
+        </button>
       </aside>
-      <section className="min-w-0 flex-1">{children}</section>
+
+      <section className={cn("min-w-0 flex-1", isStudio ? "min-h-0 overflow-hidden lg:pl-4" : "lg:pl-8")}>{children}</section>
     </main>
   );
 }

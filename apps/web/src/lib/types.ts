@@ -3,10 +3,17 @@ export type {
   ModelStatus,
   StepStatus,
   SystemStatus,
+  StudioRuntimeData,
+  StudioScene,
+  StudioAsset,
+  StudioSubtitle,
   TaskLog,
   TaskStatus,
   WorkflowStep,
-  RuntimeSettings
+  RuntimeSettings,
+  VoiceLibraryResponse,
+  VoiceProfile,
+  CreateVoicePayload
 } from "@devshorts/shared";
 
 import type { Task as SharedTask } from "@devshorts/shared";
@@ -32,4 +39,8 @@ export interface CreateTaskPayload {
   topic?: string;
   target_style?: string;
   speaking_style?: SpeakingStyle;
+  reference_text?: string;
+  script_prompt?: string;
+  script?: string;
+  voice?: string;
 }

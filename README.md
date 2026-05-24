@@ -1,16 +1,16 @@
 # DevShorts AI
 
-DevShorts AI is an open-source MVP skeleton for an AI short-video workflow studio. It targets developers and AI builders who want a demoable pipeline for script extraction, AI rewriting, TTS, digital human generation, B-roll/rendering, and publishing automation.
+DevShorts AI is an open-source voiceover script and AI audio generator for short-video makers. It targets programmers and AI builders who want to turn source videos, local clips, or topic notes into rewritten short-video scripts, FishSpeech-compatible narration audio, subtitles, and a rendered `final.mp4`.
 
-The current third-phase MVP is semi-real: it still runs without heavy local media tooling, but the API and UI now expose the task shape needed for local file input, topics, speaking style, artifacts, and future real adapters.
+The current MVP is a local-first product slice: it can run with lightweight fallbacks, but the main path is a `semi_real` task that accepts a URL or local file, extracts or drafts script content, rewrites it for a target short-video style, generates `voice.wav` through edge-tts or a FishSpeech-compatible service, and renders a preview video with subtitles.
 
 ## Stack
 
 - Frontend: Next.js, TypeScript, TailwindCSS, shadcn-style UI primitives
 - Backend: FastAPI, Python
 - Task queue: in-memory task store, designed to swap to Redis/Celery
-- AI providers: mock provider now, OpenAI/Ollama placeholders
-- Media providers: ffmpeg semi-real adapters plus mock/edge-tts/FishSpeech seams for TTS, yt-dlp, Whisper/faster-whisper, digital human, B-roll, and platform publishing
+- AI providers: fallback provider now, OpenAI-compatible and Ollama adapter paths
+- Media providers: ffmpeg adapters plus fallback/edge-tts/FishSpeech seams for TTS, yt-dlp, and Whisper/faster-whisper
 
 ## Quick Start
 
@@ -42,7 +42,7 @@ Open:
 
 ## Optional Local Tools
 
-The app works without these tools. Install them only when testing semi-real media adapters:
+The app works without these tools by logging fallbacks and keeping tasks inspectable. Install them when testing the local voiceover pipeline:
 
 - `ffmpeg` for audio extraction and render probing.
 - `yt-dlp` for downloading source videos from URLs.
@@ -50,7 +50,7 @@ The app works without these tools. Install them only when testing semi-real medi
 - `edge-tts` for quick local voice synthesis.
 - FishSpeech-compatible HTTP service for local neural TTS.
 
-If a semi-real dependency or provider is missing, DevShorts AI should fall back gracefully to mock artifacts and keep the task inspectable instead of failing the whole demo.
+If a dependency or provider is missing, DevShorts AI should fall back gracefully to placeholder artifacts and clear task logs instead of crashing the run.
 
 Install Whisper CLI for real ASR:
 
@@ -64,34 +64,33 @@ Then set `ASR_PROVIDER=whisper_cli` from Settings or `.env`. The first run downl
 
 The MVP supports three TTS modes through `.env`:
 
-- `TTS_PROVIDER=mock`: writes a silent `voice.wav`, best for guaranteed demos.
+- `TTS_PROVIDER=mock`: writes a silent fallback `voice.wav`, useful for smoke tests when no TTS engine is available.
 - `TTS_PROVIDER=edge_tts`: generates a real voice with `edge-tts`, then converts it to `voice.wav` through ffmpeg.
-- `TTS_PROVIDER=fishspeech`: calls a FishSpeech-compatible HTTP endpoint, defaulting to `http://127.0.0.1:7860/v1/audio/speech`.
+- `TTS_PROVIDER=fishspeech`: calls the official FishSpeech local API endpoint, defaulting to `http://127.0.0.1:8080/v1/tts`.
 
 FishSpeech is wired as an adapter, not bundled as a heavy model runtime. Start your FishSpeech service separately, then set:
 
 ```bash
 TTS_PROVIDER=fishspeech
-FISHSPEECH_BASE_URL=http://127.0.0.1:7860/v1/audio/speech
+FISHSPEECH_BASE_URL=http://127.0.0.1:8080/v1/tts
 FISHSPEECH_VOICE=default
 ```
 
-## MVP Flow
+## Product Flow
 
 Open Studio, enter a video URL or local file path, create a task, and watch the pipeline advance:
 
-Extract script -> AI rewrite -> TTS -> digital human -> auto edit -> title/cover -> publish
+Source video/topic -> transcript or draft -> short-video script -> FishSpeech/edge-tts voice -> subtitles -> final.mp4
 
 Task creation supports two modes:
 
-- `mock`: deterministic in-memory progress and mock artifacts.
-- `semi_real`: attempts local adapters where available, with mock fallback for unfinished or missing pieces.
+- `mock`: deterministic in-memory progress and placeholder artifacts for fast UI/API smoke tests.
+- `semi_real`: attempts local adapters where available, with logged fallbacks for missing providers.
 
 Semi-real tasks also write:
 
 - `transcript_segments.json` when Whisper/faster-whisper returns timing segments.
 - `title_cover.json` with title variants, hashtags, and cover prompts.
-- `publish_draft.json` with final video path, platform targets, and manual confirmation status.
 
 Settings can also be edited from the web UI. The API persists runtime provider configuration to:
 
@@ -107,7 +106,7 @@ Example API payload:
 {
   "source_url": "https://example.com/video",
   "local_file_path": null,
-  "title": "DevShorts AI demo",
+  "title": "DevShorts AI voiceover run",
   "mode": "semi_real",
   "topic": "open-source AI video workflows",
   "speaking_style": "technical"
@@ -119,7 +118,7 @@ Example API payload:
 ```text
 apps/
   web/      Next.js control console
-  api/      FastAPI mock workflow API
+  api/      FastAPI workflow API
 packages/
   shared/   Shared TypeScript contracts
 docs/
@@ -130,7 +129,7 @@ docs/
 
 ## Development Notes
 
-- Heavy model inference and real publishing are not implemented in this MVP.
+- Heavy model inference is not bundled in this MVP.
 - Every workflow service has a dedicated module for future replacement.
 - The API keeps tasks in memory. Restarting the API clears task history.
 - Generated artifacts are represented in the task `artifacts` map until durable storage is added.

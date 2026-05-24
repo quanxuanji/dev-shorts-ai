@@ -4,15 +4,25 @@
   "private": true,
   "description": "AI short video workflow studio for developers and AI builders.",
   "workspaces": [
+    "apps/render",
     "apps/web",
     "packages/shared"
   ],
   "scripts": {
+    "dev:render": "npm --workspace apps/render run studio",
+    "render:sample": "npm --workspace apps/render run render",
+    "typecheck:render": "npm --workspace apps/render run typecheck",
     "dev:web": "npm --workspace apps/web run dev",
     "build:web": "npm --workspace apps/web run build",
     "lint:web": "npm --workspace apps/web run lint",
     "typecheck": "npm --workspace apps/web run typecheck",
-    "dev:api": "cd apps/api && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+    "dev:api": "cd apps/api && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+    "showcase:screenshots": "node scripts/showcase-screenshots.mjs",
+    "screenshots:real": "node scripts/real-studio-screenshots.mjs",
+    "verify": "node scripts/verify-studio.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1"
   },
   "engines": {
     "node": ">=20.0.0"

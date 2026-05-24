@@ -12,13 +12,13 @@ Returns API liveness and version.
 
 `GET /api/system/status`
 
-Returns mock CPU, RAM, GPU, queue, and uptime data.
+Returns local runtime telemetry for CPU, RAM, GPU, queue depth, and uptime. Some values may be estimated until durable observability is added.
 
 ## Models
 
 `GET /api/models/status`
 
-Returns mock status for LLM, ASR, TTS, Digital Human, and Video Render services.
+Returns status for the voiceover pipeline services: ASR, LLM script rewriting, TTS, and video render.
 
 ## Settings
 
@@ -51,7 +51,7 @@ Updates runtime provider configuration for newly created tasks.
   "source_url": "https://example.com/video",
   "local_file_path": null,
   "title": "Optional task title",
-  "mode": "mock",
+  "mode": "semi_real",
   "topic": "developer workflow automation",
   "speaking_style": "technical"
 }
@@ -61,13 +61,13 @@ Fields:
 
 - `source_url`: remote video URL. Optional when `local_file_path` is provided.
 - `local_file_path`: local source video path for semi-real runs.
-- `title`: display title. Defaults to a demo title.
+- `title`: display title. Defaults to a generated voiceover task title.
 - `mode`: `mock` or `semi_real`.
 - `topic`: optional prompt context for rewriting.
 - `target_style`: optional target format or audience style.
 - `speaking_style`: optional voice/script direction, default `technical`.
 
-`mock` mode returns deterministic progress and mock artifacts. `semi_real` mode is the intended integration path for ffmpeg, yt-dlp, Whisper/faster-whisper, edge-tts, FishSpeech, render, and publishing adapters. Missing tools should degrade to mock artifacts and task logs instead of breaking task inspection.
+`mock` mode returns deterministic progress and placeholder artifacts for smoke tests. `semi_real` mode is the intended product path for ffmpeg, yt-dlp, Whisper/faster-whisper, edge-tts, FishSpeech, script rewriting, subtitles, and final render. Missing tools should degrade to fallback artifacts and clear task logs instead of breaking task inspection.
 
 `GET /api/tasks/{taskId}`
 
@@ -82,12 +82,12 @@ Task response highlights:
 ```json
 {
   "id": "task-id",
-  "title": "DevShorts AI demo",
+  "title": "DevShorts AI voiceover run",
   "source_url": "https://example.com/video",
   "local_file_path": null,
   "topic": "developer workflow automation",
   "speaking_style": "technical",
-  "mode": "mock",
+  "mode": "semi_real",
   "status": "running",
   "current_step": "tts",
   "progress": 42,
@@ -97,10 +97,8 @@ Task response highlights:
     "extract": "transcript or transcript artifact URL",
     "rewrite": "short-video script or script artifact URL",
     "tts": "audio artifact URL",
-    "digital-human": "avatar video artifact URL",
     "render": "final render or manifest URL",
-    "cover": "titles and cover prompts",
-    "publish": "platform draft or mock publish URL"
+    "cover": "titles and cover prompts"
   }
 }
 ```
@@ -110,8 +108,8 @@ Semi-real artifact keys can also include:
 - `transcriptSegments`: path to `transcript_segments.json`.
 - `titleCover`: generated title, hashtags, and cover prompt draft.
 - `titleCoverPath`: path to `title_cover.json`.
-- `publishDraft`: assisted publishing manifest for future Playwright automation.
-- `publishDraftPath`: path to `publish_draft.json`.
+- `voice`: generated `voice.wav` path or URL when available.
+- `finalVideo`: generated `final.mp4` path or URL when available.
 
 ## Workflow
 
@@ -120,11 +118,16 @@ Workflow endpoints are adapter-facing helpers:
 - `POST /api/workflow/extract-script`
 - `POST /api/workflow/rewrite-script`
 - `POST /api/workflow/tts`
-- `POST /api/workflow/digital-human`
 - `POST /api/workflow/render-video`
+
+Each returns a typed response suitable for wiring the UI before every real model integration is complete. These helpers should keep provider failures visible in logs and avoid hiding fallback behavior from the user.
+
+Reserved legacy helpers still exist for compatibility:
+
+- `POST /api/workflow/digital-human`
 - `POST /api/workflow/publish`
 
-Each returns a typed response suitable for wiring the UI before every real model integration is complete. Publishing endpoints are placeholders and must not trigger real platform actions without an explicit future provider implementation.
+These are not part of the current voiceover-script product path and should remain placeholder-only unless a future provider is explicitly implemented.
 
 ## TTS Provider Env
 
@@ -137,7 +140,7 @@ Supported `TTS_PROVIDER` values:
 FishSpeech env:
 
 ```bash
-FISHSPEECH_BASE_URL=http://127.0.0.1:7860/v1/audio/speech
+FISHSPEECH_BASE_URL=http://127.0.0.1:8080/v1/tts
 FISHSPEECH_API_KEY=
 FISHSPEECH_VOICE=default
 FISHSPEECH_TIMEOUT_SECONDS=180
@@ -145,6 +148,6 @@ FISHSPEECH_TIMEOUT_SECONDS=180
 
 Supported `ASR_PROVIDER` values:
 
-- `mock`: deterministic transcript.
+- `mock`: deterministic fallback transcript.
 - `whisper_cli`: calls the `whisper` command if installed.
 - `faster_whisper`: calls the optional Python `faster_whisper` package if installed.
