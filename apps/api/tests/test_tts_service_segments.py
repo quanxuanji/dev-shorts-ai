@@ -143,6 +143,66 @@ class TTSServiceSegmentsTest(unittest.TestCase):
         self.assertEqual(b"fake-reference-audio", payload["references"][0]["audio"])
         self.assertEqual("这是一段固定主播音色的参考口播。", payload["references"][0]["text"])
 
+    def test_fishspeech_payload_rewrites_rank_prefix_for_tts_stability(self):
+        payload = TTSService()._build_fishspeech_payload(
+            script="第二，游戏启动器，本周新增四十三星。",
+            voice="weekly-host",
+            runtime_settings=RuntimeSettings(tts_provider="fishspeech", fishspeech_voice="weekly-host"),
+        )
+
+        self.assertEqual("接下来第 2 名，游戏启动器，本周新增四十三星。", payload["text"])
+
+    def test_fishspeech_payload_normalizes_mixed_english_and_digits(self):
+        payload = TTSService()._build_fishspeech_payload(
+            script="第二，移动端我的世界启动器，让手机也能玩Java版，涨了43星。",
+            voice="weekly-host",
+            runtime_settings=RuntimeSettings(tts_provider="fishspeech", fishspeech_voice="weekly-host"),
+        )
+
+        self.assertEqual("接下来第 2 名，手机游戏启动器，本周值得关注。", payload["text"])
+
+    def test_fishspeech_payload_normalizes_project_terms(self):
+        payload = TTSService()._build_fishspeech_payload(
+            script="第八，AgentScope Java框架，构建多Agent应用，补齐Java生态短板。",
+            voice="weekly-host",
+            runtime_settings=RuntimeSettings(tts_provider="fishspeech", fishspeech_voice="weekly-host"),
+        )
+
+        self.assertEqual("接下来第 8 名，智能体框架，构建多智能体应用，补齐爪哇生态短板。", payload["text"])
+
+    def test_fishspeech_payload_simplifies_ai_framework_phrasing(self):
+        payload = TTSService()._build_fishspeech_payload(
+            script="第四，Spring AI框架发布，企业快速接入大模型，AI开发新入口。",
+            voice="weekly-host",
+            runtime_settings=RuntimeSettings(tts_provider="fishspeech", fishspeech_voice="weekly-host"),
+        )
+
+        self.assertEqual("接下来第 4 名，人工智能开发框架，本周值得关注。", payload["text"])
+
+    def test_fishspeech_payload_simplifies_game_project_phrasing(self):
+        payload = TTSService()._build_fishspeech_payload(
+            script="第二，安卓Minecraft启动器，手机也能玩Java版。",
+            voice="weekly-host",
+            runtime_settings=RuntimeSettings(tts_provider="fishspeech", fishspeech_voice="weekly-host"),
+        )
+
+        self.assertEqual("接下来第 2 名，手机游戏启动器，本周值得关注。", payload["text"])
+
+    def test_fishspeech_safe_retry_text_keeps_scene_rank(self):
+        self.assertEqual(
+            "接下来第 7 名，这个项目本周值得关注。",
+            TTSService()._fishspeech_safe_retry_text("第七，Spring AI Alibaba框架。"),
+        )
+
+    def test_fishspeech_payload_caps_short_video_token_budget(self):
+        payload = TTSService()._build_fishspeech_payload(
+            script="第一，系统设计免费学习资料，本周新增八百二十六星。",
+            voice="weekly-host",
+            runtime_settings=RuntimeSettings(tts_provider="fishspeech", fishspeech_voice="weekly-host"),
+        )
+
+        self.assertLessEqual(payload["max_new_tokens"], 128)
+
 
 if __name__ == "__main__":
     unittest.main()

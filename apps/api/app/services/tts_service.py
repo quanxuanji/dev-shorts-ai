@@ -348,6 +348,17 @@ class TTSService:
                     logs.append(f"[TTS] FishSpeech generated wav voice audio at {output_path}")
                     metadata["durationSeconds"] = round(duration_seconds, 3)
                     return output_path, logs, metadata
+                retry_script = self._fishspeech_safe_retry_text(script)
+                if retry_script != script:
+                    logs.append(f"[FishSpeech] retrying with TTS-safe text: {retry_script}")
+                    self._fishspeech(retry_script, runtime_settings.fishspeech_voice or voice, output_path, runtime_settings)
+                    duration_seconds = self._audio_duration_seconds(output_path)
+                    if output_path.exists() and output_path.stat().st_size > 44 and duration_seconds >= 1:
+                        logs.append("[FishSpeech] voice generated")
+                        logs.append(f"[TTS] FishSpeech retry generated wav voice audio at {output_path}")
+                        metadata["durationSeconds"] = round(duration_seconds, 3)
+                        metadata["ttsRetryText"] = retry_script
+                        return output_path, logs, metadata
                 warning = f"[TTS] fallback: FishSpeech returned no usable audio ({duration_seconds:.3f}s); generating silent wav."
                 logs.append(warning)
                 metadata["fallbackWarnings"].append(warning)
@@ -420,13 +431,14 @@ class TTSService:
         else:
             use_memory_cache = "on" if cache_setting == "on" else "off"
 
+        fishspeech_text = self._fishspeech_text_for_generation(script)
         return {
-            "text": script,
+            "text": fishspeech_text,
             "references": references,
             "reference_id": reference_id,
             "format": "wav",
             "latency": "normal",
-            "max_new_tokens": 1024,
+            "max_new_tokens": self._fishspeech_max_new_tokens(fishspeech_text),
             "chunk_length": 300,
             "top_p": 0.8,
             "repetition_penalty": 1.1,
@@ -435,6 +447,113 @@ class TTSService:
             "use_memory_cache": use_memory_cache,
             "seed": 42,
         }
+
+    def _fishspeech_text_for_generation(self, script: str) -> str:
+        text = script.strip()
+        ordinal_map = {
+            "第一": 1,
+            "第二": 2,
+            "第三": 3,
+            "第四": 4,
+            "第五": 5,
+            "第六": 6,
+            "第七": 7,
+            "第八": 8,
+            "第九": 9,
+            "第十": 10,
+        }
+        match = re.match(r"^\s*(第一|第二|第三|第四|第五|第六|第七|第八|第九|第十)\s*[，,、:：]\s*(.+)$", text)
+        if not match:
+            return self._normalize_fishspeech_mixed_text(text)
+        rank = ordinal_map[match.group(1)]
+        return f"接下来第 {rank} 名，{self._normalize_fishspeech_mixed_text(match.group(2).strip())}"
+
+    def _fishspeech_max_new_tokens(self, script: str) -> int:
+        return 128
+
+    def _fishspeech_safe_retry_text(self, script: str) -> str:
+        text = script.strip()
+        ordinal_map = {
+            "第一": 1,
+            "第二": 2,
+            "第三": 3,
+            "第四": 4,
+            "第五": 5,
+            "第六": 6,
+            "第七": 7,
+            "第八": 8,
+            "第九": 9,
+            "第十": 10,
+        }
+        match = re.match(r"^\s*(第一|第二|第三|第四|第五|第六|第七|第八|第九|第十)", text)
+        if not match:
+            return "接下来这个项目，本周值得关注。"
+        rank = ordinal_map[match.group(1)]
+        return f"接下来第 {rank} 名，这个项目本周值得关注。"
+
+    def _normalize_fishspeech_mixed_text(self, text: str) -> str:
+        replacements = [
+            (r"Spring\s*AI\s*Alibaba", "阿里人工智能框架"),
+            (r"AgentScope\s*Java\s*框架", "智能体框架"),
+            (r"AgentScope", "智能体框架"),
+            (r"Termux", "安卓终端"),
+            (r"MojoLauncher", "游戏启动器"),
+            (r"Baritone", "自动寻路工具"),
+            (r"NewPipe", "开源流媒体客户端"),
+            (r"Spring\s*AI", "人工智能框架"),
+            (r"GitHub", "开源社区"),
+            (r"Minecraft", "我的世界"),
+            (r"Android", "安卓"),
+            (r"Linux", "林纳克斯"),
+            (r"Java", "爪哇"),
+            (r"LLM", "大模型"),
+            (r"Agent", "智能体"),
+            (r"AI", "人工智能"),
+        ]
+        normalized = text
+        for pattern, replacement in replacements:
+            normalized = re.sub(pattern, replacement, normalized, flags=re.IGNORECASE)
+        normalized = normalized.replace("人工智能框架框架", "人工智能开发框架")
+        normalized = normalized.replace("阿里人工智能框架框架", "阿里人工智能开发框架")
+        if "我的世界启动器" in normalized:
+            return "手机游戏启动器，本周值得关注。"
+        if "自动路径规划" in normalized or "自动寻路" in normalized:
+            return "游戏自动寻路工具，本周值得关注。"
+        if "阿里人工智能开发框架" in normalized:
+            return "阿里人工智能开发框架，企业应用首选。"
+        if "人工智能开发框架" in normalized:
+            return "人工智能开发框架，本周值得关注。"
+
+        def replace_number(match: re.Match[str]) -> str:
+            if match.start() >= 2 and normalized[match.start() - 2 : match.start()] == "第 ":
+                return match.group(0)
+            return self._number_to_chinese(int(match.group(0)))
+
+        return re.sub(r"\d+", replace_number, normalized)
+
+    def _number_to_chinese(self, value: int) -> str:
+        if value == 0:
+            return "零"
+        digits = "零一二三四五六七八九"
+        units = ["", "十", "百", "千", "万"]
+        chars: list[str] = []
+        text = str(value)
+        length = len(text)
+        zero_pending = False
+        for index, char in enumerate(text):
+            digit = int(char)
+            unit_index = length - index - 1
+            if digit == 0:
+                zero_pending = bool(chars)
+                continue
+            if zero_pending:
+                chars.append("零")
+                zero_pending = False
+            if digit == 1 and unit_index == 1 and not chars:
+                chars.append(units[unit_index])
+            else:
+                chars.append(digits[digit] + units[unit_index])
+        return "".join(chars)
 
     def _fishspeech_references(self, runtime_settings) -> list[dict[str, Any]]:
         audio_path_value = str(getattr(runtime_settings, "fishspeech_reference_audio_path", "") or "").strip()
