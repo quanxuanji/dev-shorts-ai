@@ -35,14 +35,14 @@ export function TimelineTrack({
       <div className={`${compact ? "mb-3" : "mb-4 min-[2200px]:mb-5"} flex items-center justify-between`}>
         <h2 className="studio-section-title flex items-center gap-2 text-sm">
           <Activity className="h-4 w-4 text-[#5DE2FF]" />
-          Timeline
+          {compact ? "视频节奏" : "Timeline"}
         </h2>
-        <span className="text-xs text-[#777D89]">{available ? "real timeline.json" : "waiting for timeline"}</span>
+        <span className="text-xs text-[#777D89]">{available ? (compact ? "已排好每段节奏" : "real timeline.json") : compact ? "等待生成" : "waiting for timeline"}</span>
       </div>
       <div className={compact ? "space-y-3" : "space-y-4"}>
-        <Track label="visual" scenes={scenes} duration={duration} color="studio-track-visual" enabled={available} selectedSceneIndex={selectedSceneIndex} currentStartMs={currentStartMs} showLabels compact={compact} onSelectScene={onSelectScene} />
-        <Track label="voice" scenes={scenes} duration={duration} color="studio-track-voice" enabled={available || scenes.length > 0} selectedSceneIndex={selectedSceneIndex} currentStartMs={currentStartMs} compact={compact} onSelectScene={onSelectScene} />
-        <Track label="subtitle" scenes={scenes} duration={duration} color="studio-track-subtitle" enabled={available && Boolean(runtime?.subtitles?.length)} selectedSceneIndex={selectedSceneIndex} currentStartMs={currentStartMs} compact={compact} onSelectScene={onSelectScene} />
+        <Track id="visual" label={compact ? "画面" : "visual"} scenes={scenes} duration={duration} color="studio-track-visual" enabled={available} selectedSceneIndex={selectedSceneIndex} currentStartMs={currentStartMs} showLabels compact={compact} onSelectScene={onSelectScene} />
+        <Track id="voice" label={compact ? "口播" : "voice"} scenes={scenes} duration={duration} color="studio-track-voice" enabled={available || scenes.length > 0} selectedSceneIndex={selectedSceneIndex} currentStartMs={currentStartMs} compact={compact} onSelectScene={onSelectScene} />
+        <Track id="subtitle" label={compact ? "字幕" : "subtitle"} scenes={scenes} duration={duration} color="studio-track-subtitle" enabled={available && Boolean(runtime?.subtitles?.length)} selectedSceneIndex={selectedSceneIndex} currentStartMs={currentStartMs} compact={compact} onSelectScene={onSelectScene} />
       </div>
       {inspector && !compact ? (
         <div className="mt-4 grid gap-3 xl:grid-cols-4">
@@ -58,6 +58,7 @@ export function TimelineTrack({
 }
 
 function Track({
+  id,
   label,
   scenes,
   duration,
@@ -69,6 +70,7 @@ function Track({
   compact,
   onSelectScene
 }: {
+  id: "visual" | "voice" | "subtitle";
   label: string;
   scenes: StudioSceneView[];
   duration: number;
@@ -96,8 +98,8 @@ function Track({
         ) : null}
         {enabled && scenes.length ? (
           scenes.map((scene) => {
-            const start = trackStartMs(label, scene);
-            const width = Math.max(compact ? 3 : 4, (trackDurationMs(label, scene) / duration) * 100);
+            const start = trackStartMs(id, scene);
+            const width = Math.max(compact ? 3 : 4, (trackDurationMs(id, scene) / duration) * 100);
             const left = Math.max(0, (start / duration) * 100);
             const timing = getSceneTiming(scene);
             return (

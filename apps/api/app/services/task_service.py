@@ -198,9 +198,11 @@ class TaskService:
             self._start_step(task_id, active_step)
             edited_script = (payload.script or "").strip()
             if edited_script:
+                self._update_step_progress(task_id, active_step, 35, "[LLM] skipped; using the edited script from the editor.")
                 voiceover_script = edited_script
                 logs = ["[LLM] skipped; using edited voiceover script from request."]
             else:
+                self._update_step_progress(task_id, active_step, 20, "[LLM] requesting voiceover script from the selected provider.")
                 voiceover_script, logs = asyncio.run(
                     self.llm_service.generate_voiceover_script_with_logs(
                         reference_text,
@@ -223,6 +225,8 @@ class TaskService:
                 active_step,
                 {"path": str(script_path), "preview": voiceover_script},
             )
+            self._log(task_id, "info", "[LLM] building Remotion scene plan from the voiceover script.")
+            self._set_task_progress_floor(task_id, 55)
             scene_plan, scene_logs = asyncio.run(
                 self.llm_service.generate_scene_plan_with_logs(
                     voiceover_script,
@@ -1063,6 +1067,28 @@ class TaskService:
     def _log_many(self, task_id: str, messages: list[str]) -> None:
         for message in messages:
             self._log(task_id, "info", message)
+
+    def _update_step_progress(self, task_id: str, step_id: str, progress: int, message: str) -> None:
+        with self._lock:
+            task = self.tasks.get(task_id)
+            if task is None:
+                return
+            step = self._find_step(task, step_id)
+            step.status = "running"
+            step.progress = max(step.progress, progress)
+            task.status = "running"
+            task.current_step = step_id
+            task.logs.append(TaskLog(timestamp=datetime.utcnow(), level="info", message=message))
+            self._recompute_progress(task)
+            self._touch(task)
+
+    def _set_task_progress_floor(self, task_id: str, progress: int) -> None:
+        with self._lock:
+            task = self.tasks.get(task_id)
+            if task is None:
+                return
+            task.progress = max(task.progress, progress)
+            self._touch(task)
 
     def _log(self, task_id: str, level: str, message: str) -> None:
         with self._lock:

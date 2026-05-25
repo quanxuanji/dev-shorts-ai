@@ -10,7 +10,13 @@ export function ScriptEditor({ props, scenes }: { props: StudioLayoutProps; scen
   const { locale } = useI18n();
   const isZh = locale === "zh";
   const isSubmittingOrGeneratingScript = props.isCreating || props.isScriptGenerating;
+  const isTaskRunning = props.task?.status === "queued" || props.task?.status === "running";
   const hasScriptForRender = Boolean(props.voiceScript.trim() || props.artifacts.script.value.trim());
+  const activeLog = props.task?.logs.at(-1)?.message || props.runtimeLines.at(-1)?.message || "";
+  const createdAt = props.task?.created_at;
+  const startedAt = createdAt ? new Date(createdAt.endsWith("Z") ? createdAt : `${createdAt}Z`).getTime() : null;
+  const elapsedSeconds = startedAt && Number.isFinite(startedAt) ? Math.max(0, Math.round((Date.now() - startedAt) / 1000)) : 0;
+  const showActivity = Boolean(props.isCreating || isTaskRunning);
   const regenerateLabel = props.isCreating
     ? isZh
       ? "创建任务中..."
@@ -39,7 +45,7 @@ export function ScriptEditor({ props, scenes }: { props: StudioLayoutProps; scen
             {isSubmittingOrGeneratingScript ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
             {regenerateLabel}
           </Button>
-          <Button onClick={props.onRender} disabled={isSubmittingOrGeneratingScript || !hasScriptForRender} className="h-9 rounded-full bg-[#7C5CFF] text-white shadow-[0_0_28px_rgba(124,92,255,0.28)] hover:bg-[#8A70FF] hover:shadow-[0_0_32px_rgba(93,226,255,0.2)]">
+          <Button onClick={props.onRender} disabled={isSubmittingOrGeneratingScript || isTaskRunning || !hasScriptForRender} className="h-9 rounded-full bg-[#7C5CFF] text-white shadow-[0_0_28px_rgba(124,92,255,0.28)] hover:bg-[#8A70FF] hover:shadow-[0_0_32px_rgba(93,226,255,0.2)]">
             <Play className="mr-2 h-4 w-4" />
             {isZh ? "渲染" : "Render"}
           </Button>
@@ -57,6 +63,17 @@ export function ScriptEditor({ props, scenes }: { props: StudioLayoutProps; scen
               <p className="line-clamp-2 text-sm leading-6 text-[#B8BCC6]">{scene.narration || scene.summary}</p>
             </div>
           ))}
+        </div>
+      ) : null}
+
+      {showActivity ? (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-2xl border border-[#7C5CFF]/25 bg-[#7C5CFF]/10 px-3 py-2 text-xs text-[#D6D8DE]">
+          <Loader2 className="h-4 w-4 animate-spin text-[#9AF3FF]" />
+          <span className="font-medium text-[#F5F5F7]">
+            {isZh ? "正在处理任务" : "Working"}
+            {elapsedSeconds ? ` · ${elapsedSeconds}s` : ""}
+          </span>
+          <span className="min-w-0 flex-1 truncate text-[#9CA3AF]">{activeLog || (isZh ? "等待后端返回最新状态..." : "Waiting for backend status...")}</span>
         </div>
       ) : null}
 

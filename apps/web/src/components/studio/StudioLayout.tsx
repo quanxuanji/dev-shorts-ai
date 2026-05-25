@@ -189,9 +189,9 @@ function TtsDurations({ scenes }: { scenes: ReturnType<typeof normalizeScenes> }
       <div className="mb-3 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-[#F5F5F7]">
           <AudioLines className="h-4 w-4 text-[#5DE2FF]" />
-          TTS Durations
+          口播时长
         </h2>
-        <span className="text-xs text-[#777D89]">{scenes.length ? "scene audio" : "pending"}</span>
+        <span className="text-xs text-[#777D89]">{scenes.length ? "每段声音长度" : "等待生成"}</span>
       </div>
       <div className="flex h-[92px] items-end gap-3 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#050506]/50 px-4 pb-3 pt-4 shadow-[inset_0_0_28px_rgba(93,226,255,0.045)] 2xl:h-[108px] min-[2200px]:h-32 min-[2200px]:gap-4">
         {scenes.length ? (
@@ -201,12 +201,12 @@ function TtsDurations({ scenes }: { scenes: ReturnType<typeof normalizeScenes> }
                 className="studio-waveform-bar w-5 rounded-t-full"
                 style={{ height: `${Math.max(18, ((scene.audioDurationMs ?? 0) / maxDuration) * 72)}px` }}
               />
-              <div className="font-mono text-[10px] text-[#777D89]">s{scene.rank}</div>
+              <div className="font-mono text-[10px] text-[#777D89]">第{scene.rank}段</div>
               <div className="font-mono text-[10px] text-[#9EA3AE]">{scene.duration}</div>
             </div>
           ))
         ) : (
-          <div className="text-sm text-[#777D89]">Waiting for scene wav durations.</div>
+          <div className="text-sm text-[#777D89]">等待生成每段口播时长。</div>
         )}
       </div>
     </section>

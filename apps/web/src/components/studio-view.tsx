@@ -274,8 +274,22 @@ export function StudioView() {
     if (!task || task.status === "success" || task.status === "error") return;
     let cancelled = false;
     const timer = window.setInterval(async () => {
-      const fresh = await getTask(task.id);
-      if (!cancelled) setTask(fresh);
+      try {
+        const fresh = await getTask(task.id);
+        if (!cancelled) {
+          setTask(fresh);
+          setCreateError("");
+        }
+      } catch (error) {
+        if (cancelled) return;
+        const message = error instanceof Error ? error.message : "task polling failed";
+        setCreateError(message);
+        setRuntimeLines((current) => {
+          const lastLine = current.at(-1);
+          if (lastLine?.source === "Polling" && lastLine.message.includes(message)) return current;
+          return [...current.slice(-36), { id: logIdRef.current++, source: "Polling", message: `Task status request failed; retrying: ${message}`, level: "warn" }];
+        });
+      }
     }, 900);
     return () => {
       cancelled = true;
@@ -358,6 +372,7 @@ export function StudioView() {
     setCreateError("");
     setTask(null);
     setStudioRuntime(null);
+    if (intent === "script") setVoiceScript("");
     seenLogKeysRef.current = new Set();
     setRuntimeLines((current) => [
       ...current.slice(-34),
@@ -370,7 +385,7 @@ export function StudioView() {
     ]);
 
     try {
-      const payload = buildPayload(form, voiceScript);
+      const payload = buildPayload(form, intent === "audio" ? voiceScript : "");
       const created = await createTask(payload);
       if (requestVersionRef.current !== requestVersion) return;
       setTask(created);

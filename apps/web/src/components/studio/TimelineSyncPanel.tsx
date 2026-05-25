@@ -15,17 +15,17 @@ export function TimelineSyncPanel({ runtime }: { runtime: StudioRuntimeData | nu
   const silenceOk = ready && silenceGaps.length > 0 && silenceGaps.every((gap) => typeof gap === "number" && gap >= 400 && gap <= 800);
   const subtitleOk = ready && subtitles.length > 0 && subtitles.every((subtitle) => typeof subtitle.start_ms === "number" && typeof subtitle.end_ms === "number" && subtitle.end_ms > subtitle.start_ms);
   const checks = [
-    { label: "visualStartMs <= speechStartMs", ok: visualLeadOk },
-    { label: "0.5s silence between scenes", ok: silenceOk },
-    { label: "subtitle blocks aligned", ok: subtitleOk }
+    { label: "画面先于口播出现", ok: visualLeadOk },
+    { label: "段落之间留了停顿", ok: silenceOk },
+    { label: "字幕时间已对齐", ok: subtitleOk }
   ];
   const passedCount = checks.filter((check) => check.ok).length;
-  const status = ready ? (passedCount === checks.length ? "passed" : `${passedCount}/${checks.length} passed`) : "pending";
+  const status = ready ? (passedCount === checks.length ? "全部通过" : `${passedCount}/${checks.length} 通过`) : "等待生成";
 
   return (
     <section className="studio-panel-tertiary h-full rounded-[24px] border p-4 min-[2200px]:p-5">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-[#F5F5F7]">Timeline Sync</h2>
+        <h2 className="text-sm font-semibold text-[#F5F5F7]">成片检查</h2>
         <span className="text-xs text-[#777D89]">{status}</span>
       </div>
       <div className="space-y-2">
