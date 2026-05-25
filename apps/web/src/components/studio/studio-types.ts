@@ -85,6 +85,7 @@ export type StudioLayoutProps = {
   consoleRef: RefObject<HTMLDivElement>;
   studioRuntime: StudioRuntimeData | null;
   isCreating: boolean;
+  isScriptGenerating: boolean;
   createError: string;
   canRun: boolean;
   isHistoryLoading: boolean;

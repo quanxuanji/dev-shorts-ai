@@ -1,4 +1,4 @@
-import { FileText, Play, Sparkles } from "lucide-react";
+import { FileText, Loader2, Play, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,23 @@ import type { StudioLayoutProps, StudioSceneView } from "./studio-types";
 export function ScriptEditor({ props, scenes }: { props: StudioLayoutProps; scenes: StudioSceneView[] }) {
   const { locale } = useI18n();
   const isZh = locale === "zh";
+  const isSubmittingOrGeneratingScript = props.isCreating || props.isScriptGenerating;
+  const hasScriptForRender = Boolean(props.voiceScript.trim() || props.artifacts.script.value.trim());
+  const regenerateLabel = props.isCreating
+    ? isZh
+      ? "创建任务中..."
+      : "Creating task..."
+    : props.isScriptGenerating
+      ? isZh
+        ? "生成口播中..."
+        : "Generating script..."
+      : hasScriptForRender
+        ? isZh
+          ? "重新生成"
+          : "Regenerate"
+        : isZh
+          ? "生成口播"
+          : "Generate Script";
 
   return (
     <section className="studio-panel-primary rounded-[24px] border p-4 min-[2200px]:rounded-[28px] min-[2200px]:p-5">
@@ -18,11 +35,11 @@ export function ScriptEditor({ props, scenes }: { props: StudioLayoutProps; scen
           {isZh ? "口播脚本" : "Script Editor"}
         </h2>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={props.onRegenerate} disabled={props.isCreating || !props.canRun} className="h-9 rounded-full border-[#23252B] bg-[#15171A] text-[#D6D8DE] hover:bg-white/[0.08]">
-            <Sparkles className="mr-2 h-4 w-4" />
-            {isZh ? "重新生成" : "Regenerate"}
+          <Button variant="secondary" onClick={props.onRegenerate} disabled={isSubmittingOrGeneratingScript || !props.canRun} className="h-9 rounded-full border-[#23252B] bg-[#15171A] text-[#D6D8DE] hover:bg-white/[0.08]">
+            {isSubmittingOrGeneratingScript ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+            {regenerateLabel}
           </Button>
-          <Button onClick={props.onRender} disabled={props.isCreating || !props.canRun} className="h-9 rounded-full bg-[#7C5CFF] text-white shadow-[0_0_28px_rgba(124,92,255,0.28)] hover:bg-[#8A70FF] hover:shadow-[0_0_32px_rgba(93,226,255,0.2)]">
+          <Button onClick={props.onRender} disabled={isSubmittingOrGeneratingScript || !hasScriptForRender} className="h-9 rounded-full bg-[#7C5CFF] text-white shadow-[0_0_28px_rgba(124,92,255,0.28)] hover:bg-[#8A70FF] hover:shadow-[0_0_32px_rgba(93,226,255,0.2)]">
             <Play className="mr-2 h-4 w-4" />
             {isZh ? "渲染" : "Render"}
           </Button>

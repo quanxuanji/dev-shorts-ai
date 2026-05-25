@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -55,8 +56,9 @@ class RemotionRenderService:
             logs.extend(self._timeline_debug_logs(timeline, audio_path, total_frames))
         manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
+        npm_command = "npm.cmd" if os.name == "nt" else "npm"
         command = [
-            "npm",
+            npm_command,
             "--workspace",
             "apps/render",
             "exec",

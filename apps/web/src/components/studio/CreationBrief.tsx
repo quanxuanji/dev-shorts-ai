@@ -1,4 +1,4 @@
-import { FolderInput, Link2, RadioTower, SlidersHorizontal, Sparkles } from "lucide-react";
+import { FolderInput, Link2, Loader2, RadioTower, SlidersHorizontal, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,18 @@ import type { StudioLayoutProps } from "./studio-types";
 export function CreationBrief({ props }: { props: StudioLayoutProps }) {
   const { locale } = useI18n();
   const isZh = locale === "zh";
+  const isSubmittingOrGeneratingScript = props.isCreating || props.isScriptGenerating;
+  const createLabel = props.isCreating
+    ? isZh
+      ? "创建任务中..."
+      : "Creating task..."
+    : props.isScriptGenerating
+      ? isZh
+        ? "生成口播中..."
+        : "Generating script..."
+      : isZh
+        ? "生成视频"
+        : "Create Video";
 
   return (
     <section className="studio-panel-primary rounded-[24px] border p-4 min-[2200px]:rounded-[28px] min-[2200px]:p-5">
@@ -80,8 +92,9 @@ export function CreationBrief({ props }: { props: StudioLayoutProps }) {
       </label>
 
       <div className="mt-3 flex flex-wrap items-center gap-3 min-[2200px]:mt-4">
-        <Button onClick={props.onCreate} disabled={props.isCreating || !props.canRun} className="h-11 rounded-full bg-[#F5F5F7] px-5 text-[#0B0B0C] shadow-[0_0_30px_rgba(124,92,255,0.18)] hover:bg-white hover:shadow-[0_0_34px_rgba(93,226,255,0.18)]">
-          {props.isCreating ? (isZh ? "创建中..." : "Creating...") : isZh ? "生成视频" : "Create Video"}
+        <Button onClick={props.onCreate} disabled={isSubmittingOrGeneratingScript || !props.canRun} className="h-11 rounded-full bg-[#F5F5F7] px-5 text-[#0B0B0C] shadow-[0_0_30px_rgba(124,92,255,0.18)] hover:bg-white hover:shadow-[0_0_34px_rgba(93,226,255,0.18)]">
+          {isSubmittingOrGeneratingScript ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          {createLabel}
         </Button>
         {props.createError ? <span className="text-sm text-red-300">{props.createError}</span> : <span className="text-sm text-[#777D89]">{isZh ? "不会调用 fake pipeline，提交真实任务后读取 artifacts。" : "No fake pipeline. Submit a real task, then read generated artifacts."}</span>}
       </div>

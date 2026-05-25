@@ -20,4 +20,6 @@ apps/api/artifacts/showcase-images-safe/
 apps/api/artifacts/real-project-screenshots/
 apps/api/artifacts/github-weekly-top8/
 artifacts/
+api-dev.log
+web-dev.log
 apps/web/tsconfig.tsbuildinfo

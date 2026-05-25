@@ -7,7 +7,7 @@ import { deriveProgress, runtimeStatusLabel, taskTitle } from "./studio-utils";
 
 export function StudioStatusBar({ props }: { props: StudioLayoutProps }) {
   const progress = deriveProgress(props.task, props.artifacts, props.studioRuntime);
-  const status = runtimeStatusLabel(props.task, props.studioRuntime, props.isCreating, props.createError);
+  const status = props.isScriptGenerating ? "generating script" : runtimeStatusLabel(props.task, props.studioRuntime, props.isCreating, props.createError);
   const title = taskTitle(props.task, props.studioRuntime, props.form.topic);
   const hasScript = Boolean(props.artifacts.script.value || props.studioRuntime?.scenes.length);
   const hasVoice = props.artifacts.audio.kind === "real" || Boolean(props.studioRuntime?.assets.some((asset) => asset.name === "voice.wav" && asset.exists));

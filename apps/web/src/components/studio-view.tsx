@@ -112,6 +112,10 @@ function hasPlayableVideo(task: Task) {
   return Boolean(getStudioArtifacts(task).video.value);
 }
 
+function scriptStepStatus(task: Task | null) {
+  return task?.steps.find((step) => step.id === "voiceoverScript" || step.label.toLowerCase().includes("script"))?.status ?? null;
+}
+
 function runtimeLineFromTaskLog(log: TaskLog, id: number): RuntimeLine {
   const lowerMessage = log.message.toLowerCase();
   const isWarning =
@@ -202,6 +206,8 @@ export function StudioView() {
   const audioUrl = artifactUrl(artifacts.audio.value);
   const videoUrl = artifactUrl(artifacts.video.value);
   const canRun = Boolean(form.topic.trim() || form.sourceUrl.trim() || form.localFilePath.trim() || voiceScript.trim());
+  const isScriptReady = Boolean(artifacts.script.value || studioRuntime?.scenes.length || scriptStepStatus(task) === "success");
+  const isScriptGenerating = Boolean(task && task.status !== "error" && !isScriptReady && ["queued", "running"].includes(task.status));
 
   function selectHistoryTask(nextTask: Task) {
     requestVersionRef.current += 1;
@@ -337,6 +343,15 @@ export function StudioView() {
   }, [runtimeLines]);
 
   async function handleCreateTask(intent: "script" | "audio") {
+    if (intent === "audio" && !voiceScript.trim() && !artifacts.script.value.trim()) {
+      setCreateError("请先生成或填写口播脚本，再渲染配音和视频。");
+      setRuntimeLines((current) => [
+        ...current.slice(-36),
+        { id: logIdRef.current++, source: "Studio", message: "Render skipped: no voiceover script is available yet.", level: "warn" }
+      ]);
+      return;
+    }
+
     requestVersionRef.current += 1;
     const requestVersion = requestVersionRef.current;
     setIsCreating(true);
@@ -418,6 +433,7 @@ export function StudioView() {
       consoleRef={consoleRef}
       studioRuntime={studioRuntime}
       isCreating={isCreating}
+      isScriptGenerating={isScriptGenerating}
       createError={createError}
       canRun={canRun}
       isHistoryLoading={isHistoryLoading}

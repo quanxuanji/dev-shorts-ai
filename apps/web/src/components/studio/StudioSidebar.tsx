@@ -26,13 +26,14 @@ export function StudioSidebar({
   onSelectScene: (sceneIndex: number) => void;
   onSelectAsset: (asset: StudioAssetView) => void;
 }) {
+  const isSubmittingOrGeneratingScript = props.isCreating || props.isScriptGenerating;
   const workflowItems: WorkflowItem[] = [
-    { id: "topic", title: "Topic Brief", detail: "keywords + style + platform", status: workflowStatus({ id: "topic", task: props.task, artifacts: props.artifacts, assets, scenes, isCreating: props.isCreating, runtime: props.studioRuntime }) },
-    { id: "script", title: "LLM Script", detail: `${scenes.length || "waiting"} script sections`, status: workflowStatus({ id: "script", task: props.task, artifacts: props.artifacts, assets, scenes, isCreating: props.isCreating, runtime: props.studioRuntime }) },
-    { id: "tts", title: "FishSpeech TTS", detail: "segmented voice queue", status: workflowStatus({ id: "tts", task: props.task, artifacts: props.artifacts, assets, scenes, isCreating: props.isCreating, runtime: props.studioRuntime }) },
-    { id: "subtitle", title: "Subtitle", detail: "sentence timing", status: workflowStatus({ id: "subtitle", task: props.task, artifacts: props.artifacts, assets, scenes, isCreating: props.isCreating, runtime: props.studioRuntime }) },
-    { id: "render", title: "Remotion Render", detail: "scene timeline", status: workflowStatus({ id: "render", task: props.task, artifacts: props.artifacts, assets, scenes, isCreating: props.isCreating, runtime: props.studioRuntime }) },
-    { id: "export", title: "FFmpeg Export", detail: "final.mp4", status: workflowStatus({ id: "export", task: props.task, artifacts: props.artifacts, assets, scenes, isCreating: props.isCreating, runtime: props.studioRuntime }) }
+    { id: "topic", title: "Topic Brief", detail: "keywords + style + platform", status: workflowStatus({ id: "topic", task: props.task, artifacts: props.artifacts, assets, scenes, isCreating: isSubmittingOrGeneratingScript, runtime: props.studioRuntime }) },
+    { id: "script", title: "LLM Script", detail: `${scenes.length || "waiting"} script sections`, status: workflowStatus({ id: "script", task: props.task, artifacts: props.artifacts, assets, scenes, isCreating: isSubmittingOrGeneratingScript, runtime: props.studioRuntime }) },
+    { id: "tts", title: "FishSpeech TTS", detail: "segmented voice queue", status: workflowStatus({ id: "tts", task: props.task, artifacts: props.artifacts, assets, scenes, isCreating: isSubmittingOrGeneratingScript, runtime: props.studioRuntime }) },
+    { id: "subtitle", title: "Subtitle", detail: "sentence timing", status: workflowStatus({ id: "subtitle", task: props.task, artifacts: props.artifacts, assets, scenes, isCreating: isSubmittingOrGeneratingScript, runtime: props.studioRuntime }) },
+    { id: "render", title: "Remotion Render", detail: "scene timeline", status: workflowStatus({ id: "render", task: props.task, artifacts: props.artifacts, assets, scenes, isCreating: isSubmittingOrGeneratingScript, runtime: props.studioRuntime }) },
+    { id: "export", title: "FFmpeg Export", detail: "final.mp4", status: workflowStatus({ id: "export", task: props.task, artifacts: props.artifacts, assets, scenes, isCreating: isSubmittingOrGeneratingScript, runtime: props.studioRuntime }) }
   ];
 
   return (
