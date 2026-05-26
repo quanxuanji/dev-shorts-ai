@@ -3,6 +3,7 @@ export type TaskStatus = "queued" | "running" | "success" | "error";
 export type ModelState = "online" | "standby" | "mock" | "offline" | "error";
 export type TaskMode = "mock" | "semi_real";
 export type SpeakingStyle = "tech" | "oral" | "viral";
+export type TtsProvider = "mock" | "edge_tts" | "fishspeech";
 
 export interface WorkflowStep {
   id: string;
@@ -123,7 +124,7 @@ export interface RuntimeSettings {
   asr_provider: "mock" | "whisper_cli" | "faster_whisper";
   whisper_model: string;
   whisper_language: string;
-  tts_provider: "mock" | "edge_tts" | "fishspeech";
+  tts_provider: TtsProvider;
   edge_tts_voice: string;
   fishspeech_base_url: string;
   fishspeech_api_key: string;

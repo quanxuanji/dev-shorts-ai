@@ -10,8 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { createVoice, getRuntimeSettings, getVoiceLibrary, setDefaultVoice, updateRuntimeSettings } from "@/lib/api";
+import { edgeTtsVoices, edgeTtsVoiceLabel } from "@/lib/edge-tts-voices";
 import { useI18n } from "@/lib/i18n";
-import type { RuntimeSettings, VoiceLibraryResponse } from "@/lib/types";
+import type { RuntimeSettings, TtsProvider, VoiceLibraryResponse } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 const providerOptions = {
   llm_provider: ["mock", "openai", "openai_compatible", "ollama"],
@@ -32,7 +34,7 @@ const fallbackSettings: RuntimeSettings = {
   whisper_model: "base",
   whisper_language: "auto",
   tts_provider: "edge_tts",
-  edge_tts_voice: "en-US-AriaNeural",
+  edge_tts_voice: "zh-CN-XiaoxiaoNeural",
   fishspeech_base_url: "http://127.0.0.1:8080/v1/tts",
   fishspeech_api_key: "",
   fishspeech_voice: "default",
@@ -85,6 +87,10 @@ export function SettingsView() {
   function updateField<K extends keyof RuntimeSettings>(key: K, value: RuntimeSettings[K]) {
     setForm((current) => ({ ...current, [key]: value }));
     setSaveState("idle");
+  }
+
+  function updateTtsProvider(provider: TtsProvider) {
+    updateField("tts_provider", provider);
   }
 
   async function handleSave() {
@@ -142,21 +148,21 @@ export function SettingsView() {
 
   return (
     <AppShell active="/settings">
-      <div className="space-y-5">
-        <header className="rounded-lg border border-white/10 bg-slate-950/55 p-5 shadow-violet backdrop-blur-xl">
-          <div className="font-mono text-xs uppercase tracking-[0.28em] text-cyan-200">{t.settings.eyebrow}</div>
+      <div className="settings-runtime-shell space-y-5">
+        <header className="settings-glass-panel rounded-[24px] border p-6">
+          <div className="font-mono text-xs uppercase tracking-[0.28em] text-[#4f8cff]">{t.settings.eyebrow}</div>
           <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-50 md:text-4xl">{t.settings.title}</h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
-                运行时配置会保存到 API 本地文件，新的 semi-real 任务会立即读取这些 Provider 设置。
+              <h1 className="text-3xl font-semibold tracking-tight text-[#111827] md:text-4xl">{t.settings.title}</h1>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6b7280]">
+                Runtime settings are saved locally and used by the next AI video generation.
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="font-mono text-xs text-slate-500">
+              <span className="font-mono text-xs text-[#6b7280]">
                 {isLoading ? "loading config" : saveState === "saved" ? "saved" : saveState === "error" ? "save failed" : "runtime editable"}
               </span>
-              <Button onClick={handleSave} disabled={isSaving || isLoading}>
+              <Button onClick={handleSave} disabled={isSaving || isLoading} className="rounded-full bg-[#111827] px-5 text-white shadow-[0_12px_28px_rgba(15,23,42,0.14)] hover:bg-[#1f2937]">
                 <Save className="mr-2 h-4 w-4" />
                 {isSaving ? "Saving" : "Save Config"}
               </Button>
@@ -178,12 +184,9 @@ export function SettingsView() {
               options={providerOptions.asr_provider}
               onChange={(value) => updateField("asr_provider", value)}
             />
-            <SelectField
-              label="TTS Provider"
-              value={form.tts_provider}
-              options={providerOptions.tts_provider}
-              onChange={(value) => updateField("tts_provider", value)}
-            />
+            <div className="md:col-span-2">
+              <TtsProviderSelector value={form.tts_provider} onChange={updateTtsProvider} />
+            </div>
           </SettingsCard>
 
           <SettingsCard title={t.settings.sections.apiKeys} icon={KeyRound} note="Plain local MVP storage. Do not commit secrets.">
@@ -204,8 +207,10 @@ export function SettingsView() {
             <TextField label="Whisper Language" value={form.whisper_language} onChange={(value) => updateField("whisper_language", value)} />
           </SettingsCard>
 
-          <SettingsCard title={t.settings.sections.tts} icon={Volume2} note="Use FishSpeech Voice as reference_id, or provide reference audio + exact text to lock one narrator.">
-            <TextField label="Edge TTS Voice" value={form.edge_tts_voice} onChange={(value) => updateField("edge_tts_voice", value)} />
+          <SettingsCard title={t.settings.sections.tts} icon={Volume2} note="Microsoft Edge is ideal for free testing; Fish Audio is best for consistent premium voices.">
+            <div className="md:col-span-2">
+              <EdgeVoicePicker value={form.edge_tts_voice} onChange={(value) => updateField("edge_tts_voice", value)} />
+            </div>
             <TextField label="FishSpeech Base URL" value={form.fishspeech_base_url} onChange={(value) => updateField("fishspeech_base_url", value)} />
             <TextField label="FishSpeech API Key" value={form.fishspeech_api_key} type="password" onChange={(value) => updateField("fishspeech_api_key", value)} />
             <TextField label="FishSpeech Voice / Reference ID" value={form.fishspeech_voice} onChange={(value) => updateField("fishspeech_voice", value)} />
@@ -290,6 +295,93 @@ export function SettingsView() {
   );
 }
 
+function TtsProviderSelector({ value, onChange }: { value: TtsProvider; onChange: (value: TtsProvider) => void }) {
+  const choices: Array<{ value: TtsProvider; title: string; detail: string }> = [
+    { value: "edge_tts", title: "Microsoft Edge TTS", detail: "Free voice synthesis for fast local testing." },
+    { value: "fishspeech", title: "Fish Audio", detail: "Local service or cloud API for consistent voices." },
+    { value: "mock", title: "Silent Placeholder", detail: "Debug-only mode for pipeline checks." }
+  ];
+
+  return (
+    <div>
+      <span className="mb-2 block text-xs uppercase tracking-[0.16em] text-[#6b7280]">Voice Engine</span>
+      <div className="grid gap-2 md:grid-cols-3">
+        {choices.map((choice) => (
+          <button
+            key={choice.value}
+            type="button"
+            onClick={() => onChange(choice.value)}
+            className={cn(
+              "rounded-2xl border p-3 text-left transition hover:-translate-y-0.5",
+              value === choice.value ? "border-transparent bg-[#4f8cff]/10 shadow-[0_12px_28px_rgba(79,140,255,0.08)]" : "border-slate-200/70 bg-white/50 hover:border-slate-300/80 hover:bg-white/75"
+            )}
+          >
+            <div className="text-sm font-semibold text-[#111827]">{choice.title}</div>
+            <div className="mt-1 text-xs leading-5 text-[#6b7280]">{choice.detail}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EdgeVoicePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const categories = ["Recommended", "Mandarin", "Regional"] as const;
+  const selectedLabel = edgeTtsVoiceLabel(value);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <span className="mb-2 block text-xs uppercase tracking-[0.16em] text-[#6b7280]">Edge Voice</span>
+          <div className="text-sm font-semibold text-[#111827]">{selectedLabel}</div>
+        </div>
+        <span className="rounded-full border border-slate-200/70 bg-white/60 px-3 py-1 text-xs text-[#6b7280]">{value}</span>
+      </div>
+
+      <div className="grid gap-3">
+        {categories.map((category) => (
+          <div key={category}>
+            <div className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-[#6b7280]">{category}</div>
+            <div className="grid gap-2 lg:grid-cols-2">
+              {edgeTtsVoices
+                .filter((voice) => voice.category === category)
+                .map((voice) => {
+                  const active = value === voice.id;
+                  return (
+                    <button
+                      key={voice.id}
+                      type="button"
+                      onClick={() => onChange(voice.id)}
+                      className={cn(
+                        "rounded-2xl border p-3 text-left transition hover:-translate-y-0.5",
+                        active ? "border-transparent bg-[#4f8cff]/10 shadow-[0_12px_28px_rgba(79,140,255,0.08)]" : "border-slate-200/70 bg-white/50 hover:border-slate-300/80 hover:bg-white/75"
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="text-sm font-semibold text-[#111827]">{voice.name}</div>
+                          <div className="mt-1 text-xs text-[#6b7280]">
+                            {voice.gender} · {voice.locale}
+                          </div>
+                        </div>
+                        <span className={cn("mt-1 h-2.5 w-2.5 rounded-full", active ? "bg-[#4f8cff] shadow-[0_0_16px_rgba(79,140,255,0.38)]" : "bg-slate-300")} />
+                      </div>
+                      <div className="mt-3 text-xs leading-5 text-[#4b5563]">{voice.tone}</div>
+                      <div className="mt-1 text-xs leading-5 text-[#6b7280]">{voice.useCase}</div>
+                    </button>
+                  );
+                })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <TextField label="Custom Edge Voice ID" value={value} onChange={onChange} />
+    </div>
+  );
+}
+
 function SettingsCard({
   title,
   icon: Icon,
@@ -302,13 +394,13 @@ function SettingsCard({
   children: ReactNode;
 }) {
   return (
-    <Card>
+    <Card className="settings-glass-panel rounded-[24px] border">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Icon className="h-4 w-4 text-violet-200" />
+        <CardTitle className="flex items-center gap-2 text-base font-semibold text-[#111827]">
+          <Icon className="h-4 w-4 text-[#4f8cff]" />
           {title}
         </CardTitle>
-        <span className="font-mono text-xs text-slate-500">{note}</span>
+        <span className="font-mono text-xs text-[#6b7280]">{note}</span>
       </CardHeader>
       <CardContent className="grid gap-3 md:grid-cols-2">{children}</CardContent>
     </Card>
@@ -324,8 +416,8 @@ function VoiceList({
 }) {
   if (!library.voices.length) {
     return (
-      <div className="rounded-md border border-dashed border-white/10 bg-slate-950/35 p-4 text-sm text-slate-500">
-        还没有保存音色。把喜欢的生成音频路径填进 Reference Audio Path，再配上准确口播文本，就能沉淀成可复用 voice_id。
+      <div className="rounded-2xl border border-dashed border-slate-200 bg-white/45 p-4 text-sm text-[#6b7280]">
+        No saved voices yet. Add a reference audio path and matching script to create a reusable voice preset.
       </div>
     );
   }
@@ -333,14 +425,14 @@ function VoiceList({
   return (
     <div className="grid gap-3">
       {library.voices.map((voice) => (
-        <div key={voice.id} className="rounded-md border border-white/10 bg-slate-950/45 p-3">
+        <div key={voice.id} className="rounded-2xl border border-slate-200/70 bg-white/55 p-3 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">
+              <div className="flex items-center gap-2 text-sm font-semibold text-[#111827]">
                 {voice.name}
-                {voice.is_default ? <span className="rounded-full bg-violet-400/15 px-2 py-0.5 text-[11px] text-violet-100">Default</span> : null}
+                {voice.is_default ? <span className="rounded-full bg-[#4f8cff]/10 px-2 py-0.5 text-[11px] text-[#4f8cff]">Default</span> : null}
               </div>
-              <div className="mt-1 font-mono text-xs text-slate-500">{voice.id}</div>
+              <div className="mt-1 font-mono text-xs text-[#6b7280]">{voice.id}</div>
             </div>
             <Button
               variant="secondary"
@@ -352,7 +444,7 @@ function VoiceList({
               Use Voice
             </Button>
           </div>
-          <div className="mt-3 grid gap-1 text-xs text-slate-500">
+          <div className="mt-3 grid gap-1 text-xs text-[#6b7280]">
             <span className="truncate">audio: {voice.reference_audio_path}</span>
             <span className="truncate">text: {voice.reference_text}</span>
           </div>
@@ -375,7 +467,7 @@ function TextField({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs uppercase tracking-[0.16em] text-slate-500">{label}</span>
+      <span className="mb-2 block text-xs uppercase tracking-[0.16em] text-[#6b7280]">{label}</span>
       <Input value={value} type={type} onChange={(event) => onChange(event.target.value)} />
     </label>
   );
@@ -394,11 +486,11 @@ function SelectField<T extends string>({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs uppercase tracking-[0.16em] text-slate-500">{label}</span>
+      <span className="mb-2 block text-xs uppercase tracking-[0.16em] text-[#6b7280]">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value as T)}
-        className="h-10 w-full rounded-md border border-white/10 bg-slate-950/70 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-cyan-300/70 focus:ring-2 focus:ring-cyan-300/20"
+        className="h-10 w-full rounded-xl border border-slate-200/70 bg-white/58 px-3 py-2 text-sm text-[#111827] outline-none transition focus:border-[#4f8cff]/45 focus:ring-4 focus:ring-[#4f8cff]/10"
       >
         {options.map((option) => (
           <option key={option} value={option}>

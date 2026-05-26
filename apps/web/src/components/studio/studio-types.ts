@@ -1,6 +1,6 @@
 import type { RefObject } from "react";
 
-import type { RuntimeSettings, SpeakingStyle, StudioRuntimeData, Task } from "@/lib/types";
+import type { RuntimeSettings, SpeakingStyle, StudioRuntimeData, Task, TtsProvider } from "@/lib/types";
 
 export type RuntimeLine = {
   id: number;
@@ -87,6 +87,7 @@ export type StudioLayoutProps = {
   studioRuntime: StudioRuntimeData | null;
   isCreating: boolean;
   isScriptGenerating: boolean;
+  isTtsProviderSaving: boolean;
   createError: string;
   canRun: boolean;
   isHistoryLoading: boolean;
@@ -95,6 +96,7 @@ export type StudioLayoutProps = {
   onNewVideo: () => void;
   onRegenerate: () => void;
   onRender: () => void;
+  onSelectTtsProvider: (provider: TtsProvider, options?: { edgeVoice?: string }) => void;
   onApplyStyleChip: (chip: StudioStyleChip) => void;
   onRefreshSettings: () => void;
   onRefreshRuntime: () => void;

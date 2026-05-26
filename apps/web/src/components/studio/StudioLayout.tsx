@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Check, ChevronDown, Download, FileText, Film, Loader2, Mic2, Play, RotateCcw, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { edgeTtsVoices, edgeTtsVoiceLabel } from "@/lib/edge-tts-voices";
 import { cn } from "@/lib/utils";
 
 import { AssetPreviewPanel } from "./AssetPreviewPanel";
@@ -65,7 +67,12 @@ export function StudioLayout(props: StudioLayoutProps) {
           </aside>
         </div>
 
-        <footer className="shrink-0 rounded-[24px] border border-white/[0.08] bg-[#090B12]/70 p-4 backdrop-blur-xl">
+        <motion.footer
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 240, damping: 28 }}
+          className="shrink-0 rounded-[24px] border border-white/[0.08] bg-[#090B12]/70 p-4 backdrop-blur-xl"
+        >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="text-sm font-semibold text-white">{status.detail}</div>
@@ -80,7 +87,7 @@ export function StudioLayout(props: StudioLayoutProps) {
               <ChevronDown className={cn("h-4 w-4 transition", advancedOpen && "rotate-180")} />
             </button>
           </div>
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.08]">
+          <div className="mt-4 h-px overflow-hidden rounded-full bg-white/[0.08]">
             <div className="studio-progress-glow h-full rounded-full bg-gradient-to-r from-[#5DE2FF] via-[#7C5CFF] to-[#F5F5F7] transition-all duration-500" style={{ width: `${progress}%` }} />
           </div>
           {advancedOpen ? (
@@ -94,7 +101,7 @@ export function StudioLayout(props: StudioLayoutProps) {
               onSelectAsset={setSelectedAsset}
             />
           ) : null}
-        </footer>
+        </motion.footer>
       </div>
     </AppShell>
   );
@@ -105,11 +112,11 @@ function StudioHeader({ status }: { status: SimpleStatus }) {
     <header className="flex shrink-0 flex-wrap items-center justify-between gap-4 rounded-[24px] border border-white/[0.08] bg-[#090B12]/72 px-5 py-4 backdrop-blur-xl">
       <div>
         <h1 className="text-2xl font-semibold leading-tight text-white">dev-short-ai</h1>
-        <p className="mt-1 text-sm text-white/55">输入主题，自动生成一条短视频</p>
+        <p className="mt-1 text-sm text-white/55">AI Video Runtime</p>
       </div>
       <div className="flex items-center gap-3 rounded-full border border-white/[0.08] bg-white/[0.05] px-4 py-2">
         <StatusDot status={status.stage} />
-        <span className="text-sm font-medium text-white/82">{status.label}</span>
+        <span className="text-sm font-medium text-white/82">AI Rendering</span>
       </div>
     </header>
   );
@@ -119,7 +126,13 @@ function StepOne({ props, status }: { props: StudioLayoutProps; status: SimpleSt
   const busy = props.isCreating || props.isScriptGenerating;
 
   return (
-    <section className="studio-panel-primary rounded-[24px] border p-5">
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -2, scale: 1.002 }}
+      transition={{ type: "spring", stiffness: 220, damping: 26 }}
+      className="studio-panel-primary rounded-[24px] border p-5"
+    >
       <StepTitle index={1} icon={Sparkles} title="第一步：告诉 AI 你想做什么视频" done={Boolean(props.task || props.artifacts.script.value)} active={status.stage === "idle" || status.stage === "script"} />
       <div className="mt-5 grid gap-4">
         <label className="block">
@@ -164,11 +177,12 @@ function StepOne({ props, status }: { props: StudioLayoutProps; status: SimpleSt
 
         <label className="block">
           <span className="text-sm font-medium text-white/72">补充要求</span>
+          <span className="ml-2 text-xs text-white/36">做榜单时，建议把项目名 / 链接 / 简介贴在这里，脚本会更准。</span>
           <Textarea
             value={props.form.targetStyle}
             onChange={(event) => props.setForm((current) => ({ ...current, targetStyle: event.target.value }))}
             placeholder="比如：中文技术口播，先讲痛点，再讲解决方案，最后总结"
-            className="mt-2 min-h-20 resize-none rounded-2xl border-white/[0.1] bg-[#05070D]/70 p-4 text-sm leading-6 text-white placeholder:text-white/28 focus:border-[#7C5CFF]/50 focus:ring-0"
+            className="mt-2 min-h-44 resize-y rounded-2xl border-white/[0.1] bg-[#05070D]/70 p-4 text-sm leading-6 text-white placeholder:text-white/28 focus:border-[#7C5CFF]/50 focus:ring-0"
           />
         </label>
       </div>
@@ -185,7 +199,7 @@ function StepOne({ props, status }: { props: StudioLayoutProps; status: SimpleSt
           <span className="text-sm text-white/42">从这里开始就够了，其他细节会自动处理。</span>
         )}
       </div>
-    </section>
+    </motion.section>
   );
 }
 
@@ -205,9 +219,16 @@ function StepTwo({
   const busy = props.isCreating || props.isScriptGenerating || (props.task?.status === "running" && !props.videoUrl);
   const voiceReady = props.artifacts.audio.kind === "real";
   const subtitleReady = Boolean(props.studioRuntime?.subtitles?.length || props.artifacts.video.kind === "real");
+  const selectedProvider = props.settings?.tts_provider ?? "edge_tts";
 
   return (
-    <section className="studio-panel-primary rounded-[24px] border p-5">
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -2, scale: 1.002 }}
+      transition={{ type: "spring", stiffness: 220, damping: 26, delay: 0.03 }}
+      className="studio-panel-primary rounded-[24px] border p-5"
+    >
       <StepTitle index={2} icon={Mic2} title="第二步：AI 自动生成脚本和配音" done={voiceReady || subtitleReady} active={hasScript && !props.videoUrl} />
       <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div>
@@ -219,11 +240,39 @@ function StepTwo({
             value={props.voiceScript}
             onChange={(event) => props.setVoiceScript(event.target.value)}
             placeholder="生成出来的口播稿会出现在这里。你也可以直接手写一版，再生成配音和字幕。"
-            className="min-h-[220px] resize-none rounded-2xl border-white/[0.1] bg-[#05070D]/70 p-4 text-sm leading-7 text-white placeholder:text-white/28 focus:border-[#7C5CFF]/50 focus:ring-0"
+            className="min-h-[320px] resize-y rounded-2xl border-white/[0.1] bg-[#05070D]/70 p-5 text-sm leading-8 text-white placeholder:text-white/28 focus:border-[#7C5CFF]/50 focus:ring-0"
           />
         </div>
 
         <div className="space-y-3">
+          <div className="rounded-2xl border border-white/[0.08] bg-[#05070D]/55 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <span className="text-sm font-medium text-white/72">Voice Engine</span>
+              <span className="text-xs text-white/38">{props.isTtsProviderSaving ? "Saving" : "Used for this generation"}</span>
+            </div>
+            <div className="grid gap-2">
+              <TtsProviderButton
+                active={selectedProvider === "edge_tts"}
+                title="Microsoft Edge TTS"
+                detail={edgeTtsVoiceLabel(props.settings?.edge_tts_voice || "zh-CN-XiaoxiaoNeural")}
+                disabled={props.isTtsProviderSaving || props.isCreating || props.isScriptGenerating}
+                onClick={() => props.onSelectTtsProvider("edge_tts")}
+              />
+              <TtsProviderButton
+                active={selectedProvider === "fishspeech"}
+                title="Fish Audio"
+                detail={props.settings?.fishspeech_voice ? `Voice: ${props.settings.fishspeech_voice}` : "Local service or cloud API"}
+                disabled={props.isTtsProviderSaving || props.isCreating || props.isScriptGenerating}
+                onClick={() => props.onSelectTtsProvider("fishspeech")}
+              />
+            </div>
+            <StudioEdgeVoicePicker
+              value={props.settings?.edge_tts_voice || "zh-CN-XiaoxiaoNeural"}
+              disabled={props.isTtsProviderSaving || props.isCreating || props.isScriptGenerating}
+              onChange={(voiceId) => props.onSelectTtsProvider("edge_tts", { edgeVoice: voiceId })}
+            />
+            {props.providerWarning ? <div className="mt-3 text-xs leading-5 text-amber-200/80">{props.providerWarning}</div> : null}
+          </div>
           <div className="rounded-2xl border border-white/[0.08] bg-[#05070D]/55 p-4">
             <div className="mb-3 flex items-center justify-between">
               <span className="text-sm font-medium text-white/72">分镜列表</span>
@@ -270,7 +319,72 @@ function StepTwo({
           生成配音和字幕
         </Button>
       </div>
-    </section>
+    </motion.section>
+  );
+}
+
+function TtsProviderButton({
+  active,
+  title,
+  detail,
+  disabled,
+  onClick
+}: {
+  active: boolean;
+  title: string;
+  detail: string;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "rounded-xl border p-3 text-left transition disabled:cursor-not-allowed disabled:opacity-55",
+        active ? "border-[#5DE2FF]/40 bg-[#5DE2FF]/12" : "border-white/[0.08] bg-white/[0.035] hover:border-white/[0.16] hover:bg-white/[0.06]"
+      )}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm font-semibold text-white">{title}</span>
+        <span className={cn("h-2.5 w-2.5 rounded-full", active ? "bg-[#5DE2FF]" : "bg-white/20")} />
+      </div>
+      <div className="mt-1 text-xs leading-5 text-white/45">{detail}</div>
+    </button>
+  );
+}
+
+function StudioEdgeVoicePicker({
+  value,
+  disabled,
+  onChange
+}: {
+  value: string;
+  disabled: boolean;
+  onChange: (voiceId: string) => void;
+}) {
+  const voices = edgeTtsVoices.filter((voice) => voice.category !== "Regional").slice(0, 5);
+
+  return (
+    <div className="mt-3 border-t border-white/[0.08] pt-3">
+      <label className="block">
+        <span className="mb-2 block text-xs font-medium uppercase tracking-[0.16em] text-white/45">Edge Voice</span>
+        <select
+          value={value}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.value)}
+          className="h-10 w-full rounded-xl border border-white/[0.1] bg-white/[0.45] px-3 text-sm font-medium text-[#111827] outline-none transition focus:border-[#4f8cff]/45 focus:ring-4 focus:ring-[#4f8cff]/10 disabled:cursor-not-allowed disabled:opacity-55"
+        >
+          {voices.map((voice) => (
+            <option key={voice.id} value={voice.id}>
+              {voice.name} · {voice.gender} · {voice.locale}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="mt-2 truncate text-xs text-white/38">{edgeTtsVoiceLabel(value)}</div>
+      </div>
   );
 }
 
@@ -278,7 +392,13 @@ function StepThree({ props, canDownload, hasScript }: { props: StudioLayoutProps
   const rendering = props.task?.status === "running" && hasScript && !canDownload;
 
   return (
-    <section className="studio-panel-primary rounded-[24px] border p-5">
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -2, scale: 1.002 }}
+      transition={{ type: "spring", stiffness: 220, damping: 26, delay: 0.06 }}
+      className="studio-panel-primary rounded-[24px] border p-5"
+    >
       <StepTitle index={3} icon={Film} title="第三步：导出最终视频" done={canDownload} active={hasScript && !canDownload} />
       <div className="mt-5 rounded-2xl border border-white/[0.08] bg-[#05070D]/55 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -303,7 +423,7 @@ function StepThree({ props, canDownload, hasScript }: { props: StudioLayoutProps
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }
 
@@ -311,7 +431,13 @@ function VideoPreview({ props, status, canDownload }: { props: StudioLayoutProps
   const currentStage = stageText(status.stage);
 
   return (
-    <section className="studio-panel-primary sticky top-0 rounded-[28px] border p-5">
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -2, scale: 1.002 }}
+      transition={{ type: "spring", stiffness: 220, damping: 26, delay: 0.08 }}
+      className="studio-panel-primary sticky top-0 rounded-[28px] border p-5"
+    >
       <div className="mb-4 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-base font-semibold text-white">
           <Film className="h-5 w-5 text-[#5DE2FF]" />
@@ -341,8 +467,8 @@ function VideoPreview({ props, status, canDownload }: { props: StudioLayoutProps
             ) : (
               <>
                 <Loader2 className="h-10 w-10 animate-spin text-[#5DE2FF]" />
-                <div className="mt-5 text-xl font-semibold text-white">正在生成视频...</div>
-                <p className="mt-3 text-sm leading-6 text-white/42">当前阶段：{currentStage}</p>
+                <div className="mt-5 text-lg font-semibold text-white">AI Rendering...</div>
+                <p className="mt-3 text-sm leading-6 text-white/42">Synthesizing voice and timeline</p>
               </>
             )}
           </div>
@@ -354,7 +480,7 @@ function VideoPreview({ props, status, canDownload }: { props: StudioLayoutProps
           下载 final.mp4
         </a>
       </Button>
-    </section>
+    </motion.section>
   );
 }
 
@@ -427,8 +553,8 @@ function DebugJson({ title, value }: { title: string; value: unknown }) {
 }
 
 function StatusDot({ status }: { status: SimpleStatus["stage"] }) {
-  const color = status === "done" ? "bg-emerald-300" : status === "error" ? "bg-red-300" : status === "idle" ? "bg-white/35" : "bg-[#5DE2FF]";
-  return <span className={cn("h-2.5 w-2.5 rounded-full", color, status !== "idle" && status !== "done" && status !== "error" && "animate-pulse")} />;
+  const color = status === "done" ? "bg-emerald-400" : status === "error" ? "bg-red-400" : "bg-[#4f8cff]";
+  return <span className={cn("h-2.5 w-2.5 animate-pulse rounded-full shadow-[0_0_16px_rgba(79,140,255,0.45)]", color)} />;
 }
 
 function getSimpleStatus(props: StudioLayoutProps, assets: ReturnType<typeof normalizeAssets>): SimpleStatus {

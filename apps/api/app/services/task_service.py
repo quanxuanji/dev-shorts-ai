@@ -402,14 +402,14 @@ class TaskService:
                 metadata,
             )
 
-        prompt_reference = (payload.script_prompt or payload.topic or "").strip()
+        prompt_reference = (payload.topic or payload.script_prompt or "").strip()
         if not prompt_reference:
             prompt_reference = "请生成一段介绍 DevShorts AI 语音稿生产流程的中文开发者口播。"
             warning = "No source transcript or manual reference was provided; using a local fallback reference prompt."
             metadata["fallbackWarnings"].append(warning)
             logs.append(f"[Reference] fallback: {warning}")
         else:
-            logs.append("[Reference] using script prompt/topic as source reference.")
+            logs.append("[Reference] using topic/script prompt as source reference.")
 
         reference_path = output_dir / "reference.txt"
         reference_path.write_text(prompt_reference, encoding="utf-8")

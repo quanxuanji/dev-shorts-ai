@@ -39,6 +39,20 @@ class FakeBrokenProvider:
 
 
 class LLMScenePlanTest(unittest.TestCase):
+    def test_voiceover_prompt_warns_against_fake_project_lists(self):
+        service = LLMService()
+        prompt = service._build_voiceover_context(
+            "本周 GitHub 最值得关注的 8 个 AI 项目",
+            topic="本周 GitHub 最值得关注的 8 个 AI 项目",
+            target_style="中文技术口播",
+            speaking_style="tech",
+            script_prompt=None,
+        )
+
+        self.assertIn("不要编造项目名", prompt)
+        self.assertIn("不要用“模型压缩工具”“自动化工作流”这类泛泛类别冒充具体项目", prompt)
+        self.assertIn("缺少项目清单", prompt)
+
     def test_non_mock_voiceover_script_provider_returns_script_and_logs(self):
         service = LLMService()
         with patch("app.services.llm_service.settings_service.get", return_value=RuntimeSettings(llm_provider="openai")):

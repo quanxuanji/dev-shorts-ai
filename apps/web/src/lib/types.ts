@@ -9,6 +9,7 @@ export type {
   StudioSubtitle,
   TaskLog,
   TaskStatus,
+  TtsProvider,
   WorkflowStep,
   RuntimeSettings,
   VoiceLibraryResponse,

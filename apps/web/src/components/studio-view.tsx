@@ -4,15 +4,91 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { StudioLayout } from "@/components/studio/StudioLayout";
 import type { ArtifactItem, RuntimeLine, StudioArtifacts, StudioFormState } from "@/components/studio/studio-types";
-import { createTask, getRecentTasks, getRuntimeSettings, getStudioRuntime, getTask } from "@/lib/api";
-import type { CreateTaskPayload, RuntimeSettings, SpeakingStyle, StudioRuntimeData, Task, TaskLog } from "@/lib/types";
+import { createTask, getRecentTasks, getRuntimeSettings, getStudioRuntime, getTask, updateRuntimeSettings } from "@/lib/api";
+import type { CreateTaskPayload, RuntimeSettings, SpeakingStyle, StudioRuntimeData, Task, TaskLog, TtsProvider } from "@/lib/types";
 
 type ArtifactKind = "real" | "provider" | "fallback" | "pending";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+const defaultTargetStyle = `中文技术口播，
+信息密度高，
+节奏快，
+像“GitHub 爆款项目拆解”。
+
+要求：
+- 开头3秒必须有冲击力
+- 不要废话
+- 不要鸡汤
+- 不要营销感
+- 像真正开发者在分享
+- 句子短
+- 节奏快
+- 每句话都能当字幕
+- 适合抖音/B站技术区
+
+风格参考：
+“开发者们，GitHub 又杀疯了。”
+“这个项目，已经开始替代传统工作流了。”
+“真正可怕的是，它不是 Demo。”
+
+整体氛围：
+- AI 工程化
+- 工业级 Runtime
+- 自动化工作流
+- 高级开发者工具
+- 未来感
+- 克制
+- 专业
+
+不要：
+❌ 太像 AI 配音
+❌ 太像广告
+❌ 太像新闻播报
+❌ 太浮夸
+❌ 太热血
+
+希望效果：
+像一个真正懂 AI 工程的开发者，
+在拆解一个未来感 AI 项目。
+
+视频节奏：
+前3秒：快速抛爆点
+中间：快速拆解功能链路
+结尾：一句“真正有后劲”的总结。
+
+字幕要求：
+- 一行不要太长
+- 适合竖屏阅读
+- 每句话都能单独成字幕
+- 尽量避免大段连续文字
+
+视觉配合：
+- Apple 风格 UI
+- 极简科技感
+- 白色高级界面
+- AI Runtime 工作流
+- 不要赛博朋克
+
+额外要求：
+自动生成：
+- 更适合短视频传播的表达
+- 更适合口播停顿
+- 更适合字幕切分
+- 更适合 AI 配音语气
+
+整体感觉：
+“像 OpenAI 工程师，
+在演示下一代 AI 视频系统。”
+
+事实约束：
+- 如果主题要求榜单或项目拆解，必须优先使用用户提供的项目名、链接、描述
+- 没有真实项目素材时，不要编造项目名、数据、融资、生产案例
+- 不要用“模型压缩”“工作流工具”这种泛泛类别冒充具体项目
+- 如果缺少项目清单，就按选题框架生成，并提醒需要补充项目素材`;
+
 const styleChips: Array<{ value: SpeakingStyle; label: string; prompt: string }> = [
-  { value: "tech", label: "技术口播", prompt: "中文技术口播，信息密度高，短句清楚，可信但不夸张。" },
+  { value: "tech", label: "技术口播", prompt: defaultTargetStyle },
   { value: "viral", label: "短视频爆款", prompt: "短视频节奏，开头有钩子，但不要油腻营销腔。" },
   { value: "oral", label: "自然讲述", prompt: "自然口播，像真人讲述，节奏舒服。" },
   { value: "tech", label: "产品演示", prompt: "产品演示风格，讲清楚输入、处理、产出和用户价值。" }
@@ -145,9 +221,8 @@ function buildPayload(form: StudioFormState, script: string): CreateTaskPayload 
     source_url: sourceUrl,
     local_file_path: localFilePath || undefined,
     topic: topic || undefined,
-    target_style: targetStyle || "中文开发者短视频口播，节奏清晰，避免夸张营销腔",
+    target_style: targetStyle || defaultTargetStyle,
     speaking_style: form.speakingStyle,
-    script_prompt: targetStyle || undefined,
     script: editedScript || undefined,
     title: topic ? `Voice Script: ${topic}` : "Voice Script Task"
   };
@@ -180,7 +255,7 @@ export function StudioView() {
     localFilePath: "",
     topic: "",
     targetPlatform: "抖音 / 小红书",
-    targetStyle: "中文技术口播，先讲痛点，再讲解决方案，最后总结",
+    targetStyle: defaultTargetStyle,
     speakingStyle: "tech"
   });
   const [voiceScript, setVoiceScript] = useState("");
@@ -191,6 +266,7 @@ export function StudioView() {
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [isTtsProviderSaving, setIsTtsProviderSaving] = useState(false);
   const [createError, setCreateError] = useState("");
   const [runtimeLines, setRuntimeLines] = useState<RuntimeLine[]>([
     { id: 1, source: "Studio", message: "Ready for a new AI video.", level: "info" },
@@ -451,6 +527,39 @@ export function StudioView() {
     }
   }
 
+  async function selectTtsProvider(provider: TtsProvider, options: { edgeVoice?: string } = {}) {
+    if (provider === "mock") return;
+    const edgeVoice = options.edgeVoice;
+    if (settings?.tts_provider === provider && (!edgeVoice || settings.edge_tts_voice === edgeVoice)) return;
+
+    setIsTtsProviderSaving(true);
+    setCreateError("");
+    setSettings((current) => (current ? { ...current, tts_provider: provider, ...(edgeVoice ? { edge_tts_voice: edgeVoice } : {}) } : current));
+    setRuntimeLines((current) => [
+      ...current.slice(-36),
+      {
+        id: logIdRef.current++,
+        source: "Settings",
+        message: provider === "edge_tts" ? "Switched voice engine to Microsoft Edge TTS." : "Switched voice engine to FishSpeech.",
+        level: "info"
+      }
+    ]);
+
+    try {
+      const saved = await updateRuntimeSettings({ tts_provider: provider, ...(edgeVoice ? { edge_tts_voice: edgeVoice } : {}) });
+      setSettings(saved);
+      setRuntimeLines((current) => [...current.slice(-36), { id: logIdRef.current++, source: "Settings", message: "Voice settings saved for the next task.", level: "success" }]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "settings save failed";
+      const fresh = await getRuntimeSettings().catch(() => null);
+      if (fresh) setSettings(fresh);
+      setCreateError(message);
+      setRuntimeLines((current) => [...current.slice(-36), { id: logIdRef.current++, source: "Settings", message: `TTS provider save failed: ${message}`, level: "warn" }]);
+    } finally {
+      setIsTtsProviderSaving(false);
+    }
+  }
+
   return (
     <StudioLayout
       form={form}
@@ -471,6 +580,7 @@ export function StudioView() {
       studioRuntime={studioRuntime}
       isCreating={isCreating}
       isScriptGenerating={isScriptGenerating}
+      isTtsProviderSaving={isTtsProviderSaving}
       createError={createError}
       canRun={canRun}
       isHistoryLoading={isHistoryLoading}
@@ -479,6 +589,7 @@ export function StudioView() {
       onNewVideo={startNewVideo}
       onRegenerate={() => handleCreateTask("script")}
       onRender={() => handleCreateTask("audio")}
+      onSelectTtsProvider={(provider, options) => void selectTtsProvider(provider, options)}
       onApplyStyleChip={applyStyleChip}
       onRefreshSettings={() => void getRuntimeSettings().then(setSettings)}
       onRefreshRuntime={() => void refreshRuntime()}

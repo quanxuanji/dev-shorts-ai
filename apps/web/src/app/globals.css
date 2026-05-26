@@ -3,19 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --background: 240 4% 5%;
-  --foreground: 240 11% 96%;
-  --card: 220 8% 7%;
-  --card-foreground: 240 11% 96%;
-  --border: 225 10% 15%;
-  --input: 220 9% 10%;
-  --ring: 250 100% 68%;
-  --primary: 250 100% 68%;
-  --primary-foreground: 240 11% 96%;
-  --muted: 220 10% 9%;
-  --muted-foreground: 220 8% 65%;
-  --accent: 190 100% 68%;
-  --accent-foreground: 240 11% 96%;
+  --background: 220 43% 97%;
+  --foreground: 221 39% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 221 39% 11%;
+  --border: 220 18% 88%;
+  --input: 220 43% 97%;
+  --ring: 215 100% 65%;
+  --primary: 215 100% 65%;
+  --primary-foreground: 0 0% 100%;
+  --muted: 220 27% 94%;
+  --muted-foreground: 220 9% 46%;
+  --accent: 215 100% 65%;
+  --accent-foreground: 221 39% 11%;
   --font-sans: "Inter", "MiSans", "HarmonyOS Sans SC", "Source Han Sans SC", "Noto Sans CJK SC", -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "SF Mono", "JetBrains Mono", "SFMono-Regular", ui-monospace, monospace;
 }
@@ -30,7 +30,7 @@ body {
 }
 
 html {
-  background: #05060a;
+  background: #f5f7fb;
   overflow: hidden;
 }
 
@@ -40,9 +40,9 @@ body {
   min-height: 100%;
   overflow: hidden;
   background:
-    radial-gradient(circle at top left, rgba(110, 80, 255, 0.18), transparent 35%),
-    radial-gradient(circle at top right, rgba(0, 180, 255, 0.12), transparent 30%),
-    linear-gradient(180deg, #05060a 0%, #08090f 100%);
+    radial-gradient(circle at 18% 10%, rgba(79, 140, 255, 0.12), transparent 34rem),
+    radial-gradient(circle at 86% 0%, rgba(210, 226, 255, 0.42), transparent 30rem),
+    linear-gradient(180deg, #f5f7fb 0%, #eef3f9 100%);
   color: hsl(var(--foreground));
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: antialiased;
@@ -61,7 +61,7 @@ body {
 }
 
 * {
-  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+  scrollbar-color: rgba(17, 24, 39, 0.16) transparent;
   scrollbar-width: thin;
 }
 
@@ -75,12 +75,12 @@ body {
 }
 
 *::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(17, 24, 39, 0.16);
   border-radius: 999px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(17, 24, 39, 0.28);
 }
 
 body::before {
@@ -89,10 +89,9 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(circle at 16% 8%, rgba(124, 92, 255, 0.16), transparent 28rem),
-    radial-gradient(circle at 82% 4%, rgba(93, 226, 255, 0.1), transparent 26rem),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.035), transparent 24rem);
-  mix-blend-mode: screen;
+    radial-gradient(circle at 16% 8%, rgba(79, 140, 255, 0.1), transparent 28rem),
+    radial-gradient(circle at 82% 4%, rgba(255, 255, 255, 0.78), transparent 26rem),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.72), transparent 24rem);
 }
 
 @keyframes subtle-shimmer {
@@ -359,4 +358,344 @@ body::before {
 
 .studio-muted-text {
   color: rgba(255, 255, 255, 0.45);
+}
+
+/* Apple-inspired light Studio skin. Kept as an override layer so layout and behavior stay intact. */
+.studio-runtime-shell {
+  color: #111827;
+}
+
+.studio-runtime-shell::before {
+  background: rgba(79, 140, 255, 0.11);
+}
+
+.studio-runtime-shell::after {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.studio-runtime-shell section,
+.studio-runtime-shell header,
+.studio-runtime-shell footer,
+.studio-panel-primary,
+.studio-panel-secondary,
+.studio-panel-tertiary {
+  overflow: visible;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.64)),
+    rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  box-shadow:
+    0 18px 50px rgba(15, 23, 42, 0.07),
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86) !important;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.studio-panel-primary::before,
+.studio-panel-secondary::before,
+.studio-glow-card::before {
+  opacity: 0.42;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(79, 140, 255, 0.08), transparent 28%),
+    radial-gradient(circle at 100% 8%, rgba(255, 255, 255, 0.7), transparent 32%);
+}
+
+.studio-runtime-shell h1,
+.studio-runtime-shell h2,
+.studio-runtime-shell h3,
+.studio-runtime-shell strong,
+.studio-runtime-shell .text-white,
+.studio-runtime-shell .text-\[\#F5F5F7\] {
+  color: #111827 !important;
+  letter-spacing: 0;
+}
+
+.studio-runtime-shell [class*="text-white/72"],
+.studio-runtime-shell [class*="text-white/76"],
+.studio-runtime-shell [class*="text-white/82"],
+.studio-runtime-shell [class*="text-white/68"],
+.studio-runtime-shell .text-\[\#9EA3AE\],
+.studio-runtime-shell .text-\[\#B8BCC6\],
+.studio-runtime-shell .text-\[\#D6D8DE\] {
+  color: #4b5563 !important;
+}
+
+.studio-runtime-shell [class*="text-white/55"],
+.studio-runtime-shell [class*="text-white/50"],
+.studio-runtime-shell [class*="text-white/45"],
+.studio-runtime-shell [class*="text-white/42"],
+.studio-runtime-shell [class*="text-white/38"],
+.studio-runtime-shell [class*="text-white/28"],
+.studio-runtime-shell .text-\[\#777D89\],
+.studio-section-label,
+.studio-muted-text {
+  color: #6b7280 !important;
+}
+
+.studio-runtime-shell input,
+.studio-runtime-shell textarea {
+  color: #111827 !important;
+  background: rgba(255, 255, 255, 0.56) !important;
+  border-color: rgba(203, 213, 225, 0.58) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.studio-runtime-shell textarea {
+  line-height: 1.8;
+}
+
+.studio-runtime-shell textarea:focus,
+.studio-runtime-shell input:focus {
+  border-color: rgba(79, 140, 255, 0.42) !important;
+  box-shadow:
+    0 0 0 4px rgba(79, 140, 255, 0.12),
+    0 12px 32px rgba(79, 140, 255, 0.08) !important;
+}
+
+.studio-runtime-shell textarea::placeholder,
+.studio-runtime-shell input::placeholder {
+  color: rgba(107, 114, 128, 0.48) !important;
+}
+
+.studio-runtime-shell button,
+.studio-runtime-shell a {
+  font-weight: 500;
+}
+
+.studio-runtime-shell button:not(:disabled),
+.studio-runtime-shell a {
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms ease,
+    background 220ms ease,
+    border-color 220ms ease,
+    color 220ms ease;
+}
+
+.studio-runtime-shell button:not(:disabled):hover,
+.studio-runtime-shell a:hover {
+  transform: translateY(-1px) scale(1.01);
+}
+
+.studio-runtime-shell .bg-white {
+  background: rgba(17, 24, 39, 0.94) !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+}
+
+.studio-runtime-shell .bg-\[\#7C5CFF\],
+.studio-runtime-shell .bg-\[\#5DE2FF\] {
+  background: #4f8cff !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 26px rgba(79, 140, 255, 0.24);
+}
+
+.studio-runtime-shell .bg-white\/\[0\.06\],
+.studio-runtime-shell .bg-white\/\[0\.05\],
+.studio-runtime-shell .bg-white\/\[0\.04\],
+.studio-runtime-shell .bg-white\/\[0\.035\],
+.studio-runtime-shell .bg-\[\#05070D\]\/55,
+.studio-runtime-shell .bg-\[\#05070D\]\/70 {
+  background: rgba(255, 255, 255, 0.5) !important;
+}
+
+.studio-runtime-shell .border-white\/\[0\.08\],
+.studio-runtime-shell .border-white\/\[0\.1\],
+.studio-runtime-shell .border-white\/\[0\.12\],
+.studio-runtime-shell .border-white\/\[0\.14\],
+.studio-runtime-shell .border-white\/\[0\.16\] {
+  border-color: rgba(203, 213, 225, 0.42) !important;
+}
+
+.studio-runtime-shell .border-\[\#5DE2FF\]\/35,
+.studio-runtime-shell .border-\[\#5DE2FF\]\/40,
+.studio-runtime-shell .border-\[\#7C5CFF\]\/45 {
+  border-color: transparent !important;
+}
+
+.studio-runtime-shell .bg-\[\#5DE2FF\]\/10,
+.studio-runtime-shell .bg-\[\#5DE2FF\]\/12,
+.studio-runtime-shell .bg-\[\#7C5CFF\]\/15 {
+  background: rgba(79, 140, 255, 0.1) !important;
+  box-shadow: 0 8px 24px rgba(79, 140, 255, 0.08);
+}
+
+.studio-runtime-shell .bg-black,
+.studio-runtime-shell .bg-black .text-white,
+.studio-runtime-shell .bg-black [class*="text-white/"] {
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+
+.studio-runtime-shell .bg-black [class*="text-white/42"] {
+  color: rgba(255, 255, 255, 0.48) !important;
+}
+
+.studio-runtime-shell .text-\[\#5DE2FF\],
+.studio-runtime-shell .text-\[\#7C5CFF\],
+.studio-runtime-shell .text-cyan-200,
+.studio-runtime-shell .text-violet-200 {
+  color: #4f8cff !important;
+}
+
+.studio-runtime-shell .text-red-300 {
+  color: #dc2626 !important;
+}
+
+.studio-runtime-shell .text-amber-200\/80 {
+  color: #b45309 !important;
+}
+
+.studio-runtime-shell .text-emerald-200,
+.studio-runtime-shell .text-emerald-300 {
+  color: #059669 !important;
+}
+
+.studio-runtime-shell .border-emerald-300\/25,
+.studio-runtime-shell .bg-emerald-300\/15 {
+  border-color: rgba(16, 185, 129, 0.18) !important;
+  background: rgba(16, 185, 129, 0.08) !important;
+}
+
+.studio-progress-glow {
+  background: linear-gradient(90deg, #4f8cff, rgba(79, 140, 255, 0.42)) !important;
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0) !important;
+}
+
+.studio-preview-frame {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(229, 236, 247, 0.92)) !important;
+  border-color: rgba(255, 255, 255, 0.82) !important;
+  box-shadow:
+    0 38px 80px rgba(15, 23, 42, 0.16),
+    0 8px 24px rgba(79, 140, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.08) !important;
+}
+
+.studio-preview-frame::before {
+  pointer-events: none;
+  content: "";
+  position: absolute;
+  inset: 0.55rem;
+  z-index: 20;
+  border-radius: 1.7rem;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.16), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 16%);
+}
+
+.studio-preview-frame::after {
+  opacity: 0.3;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.34), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 16%, transparent 84%, rgba(79, 140, 255, 0.12));
+}
+
+.studio-runtime-shell pre {
+  color: #475569 !important;
+  background: rgba(248, 250, 252, 0.78) !important;
+  border-color: rgba(203, 213, 225, 0.54) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-runtime-shell *,
+  .app-shell-link {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+.settings-runtime-shell {
+  position: relative;
+  isolation: isolate;
+  color: #111827;
+}
+
+.settings-runtime-shell::before {
+  pointer-events: none;
+  content: "";
+  position: fixed;
+  z-index: -1;
+  width: 34rem;
+  height: 34rem;
+  right: 8rem;
+  top: -10rem;
+  border-radius: 999px;
+  background: rgba(79, 140, 255, 0.1);
+  filter: blur(46px);
+}
+
+.settings-glass-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.66)),
+    rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(255, 255, 255, 0.48) !important;
+  box-shadow:
+    0 18px 50px rgba(15, 23, 42, 0.07),
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.settings-runtime-shell input {
+  color: #111827 !important;
+  background: rgba(255, 255, 255, 0.58) !important;
+  border-color: rgba(203, 213, 225, 0.66) !important;
+  border-radius: 0.85rem !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.74),
+    0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.settings-runtime-shell input::placeholder {
+  color: rgba(107, 114, 128, 0.48) !important;
+}
+
+.settings-runtime-shell input:focus,
+.settings-runtime-shell select:focus {
+  border-color: rgba(79, 140, 255, 0.46) !important;
+  box-shadow:
+    0 0 0 4px rgba(79, 140, 255, 0.1),
+    0 10px 28px rgba(79, 140, 255, 0.06) !important;
+}
+
+.settings-runtime-shell button:not(:disabled) {
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms ease,
+    background 220ms ease,
+    border-color 220ms ease,
+    color 220ms ease;
+}
+
+.settings-runtime-shell button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.settings-runtime-shell button[disabled] {
+  opacity: 0.52;
+}
+
+.settings-runtime-shell button[class*="border-white"],
+.settings-runtime-shell button[class*="bg-slate"] {
+  border-color: rgba(203, 213, 225, 0.62) !important;
+  background: rgba(255, 255, 255, 0.58) !important;
+  color: #111827 !important;
+}
+
+.settings-runtime-shell label:has(input[type="checkbox"]) {
+  border-color: rgba(203, 213, 225, 0.62) !important;
+  background: rgba(255, 255, 255, 0.54) !important;
+  color: #4b5563 !important;
+  border-radius: 1rem !important;
+}
+
+.settings-runtime-shell input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #4f8cff;
 }
