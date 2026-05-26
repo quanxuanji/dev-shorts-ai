@@ -12,10 +12,10 @@ type ArtifactKind = "real" | "provider" | "fallback" | "pending";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 const styleChips: Array<{ value: SpeakingStyle; label: string; prompt: string }> = [
-  { value: "tech", label: "Tech Explainer", prompt: "中文技术口播，信息密度高，短句，可信，不夸张。" },
-  { value: "viral", label: "Viral Style", prompt: "短视频节奏，开头有钩子，但不要油腻营销腔。" },
-  { value: "oral", label: "Natural Narration", prompt: "自然口播，像真人讲述，节奏舒服。" },
-  { value: "tech", label: "Product Demo", prompt: "产品演示风格，讲清楚输入、处理、产出和用户价值。" }
+  { value: "tech", label: "技术口播", prompt: "中文技术口播，信息密度高，短句清楚，可信但不夸张。" },
+  { value: "viral", label: "短视频爆款", prompt: "短视频节奏，开头有钩子，但不要油腻营销腔。" },
+  { value: "oral", label: "自然讲述", prompt: "自然口播，像真人讲述，节奏舒服。" },
+  { value: "tech", label: "产品演示", prompt: "产品演示风格，讲清楚输入、处理、产出和用户价值。" }
 ];
 
 function artifactUrl(path: unknown) {
@@ -178,8 +178,9 @@ export function StudioView() {
   const [form, setForm] = useState<StudioFormState>({
     sourceUrl: "",
     localFilePath: "",
-    topic: "把这个开发过程讲清楚",
-    targetStyle: "中文技术口播，先讲痛点，再讲做法，最后给一个清晰结论",
+    topic: "",
+    targetPlatform: "抖音 / 小红书",
+    targetStyle: "中文技术口播，先讲痛点，再讲解决方案，最后总结",
     speakingStyle: "tech"
   });
   const [voiceScript, setVoiceScript] = useState("");
@@ -217,6 +218,7 @@ export function StudioView() {
       sourceUrl: nextTask.source_url || "",
       localFilePath: nextTask.local_file_path || "",
       topic: nextTask.topic || nextTask.title || current.topic,
+      targetPlatform: current.targetPlatform,
       targetStyle: nextTask.target_style || current.targetStyle,
       speakingStyle: (nextTask.speaking_style as SpeakingStyle | null) || current.speakingStyle
     }));
@@ -284,7 +286,7 @@ export function StudioView() {
   useEffect(() => {
     if (didLoadHistoryRef.current) return;
     didLoadHistoryRef.current = true;
-    void loadHistory({ selectLatest: true });
+    void loadHistory();
     // Only run once on page mount; loadHistory depends on changing task state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -361,6 +363,7 @@ export function StudioView() {
     setForm((current) => ({
       ...current,
       topic: studioRuntime.topic || current.topic,
+      targetPlatform: current.targetPlatform,
       targetStyle: studioRuntime.target_style || current.targetStyle
     }));
   }, [studioRuntime, task?.id]);

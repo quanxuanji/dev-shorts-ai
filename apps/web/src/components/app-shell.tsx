@@ -20,7 +20,7 @@ export function AppShell({ children, active }: { children: React.ReactNode; acti
     <main
       className={cn(
         "relative z-10 mx-auto flex w-full max-w-none flex-col text-[#F5F5F7] lg:flex-row",
-        isStudio ? "h-dvh overflow-hidden px-3 py-3 lg:px-4 lg:py-4" : "h-dvh overflow-y-auto px-4 py-4 lg:px-6 lg:py-6"
+        isStudio ? "min-h-dvh overflow-y-auto px-3 py-3 lg:h-dvh lg:overflow-hidden lg:px-4 lg:py-4" : "h-dvh overflow-y-auto px-4 py-4 lg:px-6 lg:py-6"
       )}
     >
       <header className="mb-4 flex items-center justify-between rounded-2xl border border-[#23252B]/80 bg-[#111214]/80 px-3 py-2 backdrop-blur-xl lg:hidden">
@@ -87,7 +87,7 @@ export function AppShell({ children, active }: { children: React.ReactNode; acti
         </button>
       </aside>
 
-      <section className={cn("min-w-0 flex-1", isStudio ? "min-h-0 overflow-hidden lg:pl-4" : "lg:pl-8")}>{children}</section>
+      <section className={cn("min-w-0 flex-1", isStudio ? "min-h-0 lg:overflow-hidden lg:pl-4" : "lg:pl-8")}>{children}</section>
     </main>
   );
 }

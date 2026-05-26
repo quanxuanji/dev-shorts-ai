@@ -394,6 +394,10 @@ class TTSService:
             raise RuntimeError("msgpack is not installed; run `pip install -r apps/api/requirements.txt`.")
 
         payload = self._build_fishspeech_payload(script, voice, runtime_settings)
+        if self._is_fish_audio_cloud_url(runtime_settings.fishspeech_base_url):
+            self._fish_audio_cloud_tts(payload, output_path, runtime_settings)
+            return
+
         body = msgpack.packb(payload, use_bin_type=True)
         headers = {
             "Content-Type": "application/msgpack",
@@ -409,6 +413,40 @@ class TTSService:
 
         request = urllib.request.Request(
             url,
+            data=body,
+            headers=headers,
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=runtime_settings.fishspeech_timeout_seconds) as response:
+                audio_bytes = response.read()
+        except urllib.error.HTTPError as exc:
+            message = exc.read().decode("utf-8", errors="ignore")[:300]
+            raise RuntimeError(f"HTTP {exc.code}: {message}") from exc
+
+        output_path.write_bytes(audio_bytes)
+
+    def _is_fish_audio_cloud_url(self, url: str) -> bool:
+        return "api.fish.audio" in str(url).lower()
+
+    def _fish_audio_cloud_tts(self, payload: dict[str, Any], output_path: Path, runtime_settings) -> None:
+        if not runtime_settings.fishspeech_api_key:
+            raise RuntimeError("Fish Audio API key is required.")
+
+        cloud_payload = {
+            key: value
+            for key, value in payload.items()
+            if key not in {"references", "use_memory_cache"} and value not in (None, "", [])
+        }
+        body = json.dumps(cloud_payload, ensure_ascii=False).encode("utf-8")
+        headers = {
+            "Authorization": f"Bearer {runtime_settings.fishspeech_api_key}",
+            "Content-Type": "application/json",
+            "Accept": "audio/wav,audio/*;q=0.9,application/octet-stream;q=0.8",
+            "model": "s2-pro",
+        }
+        request = urllib.request.Request(
+            runtime_settings.fishspeech_base_url,
             data=body,
             headers=headers,
             method="POST",

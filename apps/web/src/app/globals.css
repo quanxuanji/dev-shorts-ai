@@ -48,6 +48,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+@media (max-width: 1023px) {
+  html {
+    overflow-y: auto;
+  }
+
+  body {
+    height: auto;
+    min-height: 100%;
+    overflow-y: auto;
+  }
+}
+
 * {
   scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
   scrollbar-width: thin;

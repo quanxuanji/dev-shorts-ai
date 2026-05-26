@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8000
     api_cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001"
+    api_cors_origin_regex: str = r"https?://(localhost|127\.0\.0\.1):\d+"
     default_provider: str = "mock"
     task_store_driver: str = "memory"
     artifacts_dir: str = "artifacts/outputs"

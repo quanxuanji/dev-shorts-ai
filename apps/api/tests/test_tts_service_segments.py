@@ -1,6 +1,7 @@
 import tempfile
 import unittest
 import wave
+import json
 from pathlib import Path
 from unittest.mock import patch
 
@@ -202,6 +203,48 @@ class TTSServiceSegmentsTest(unittest.TestCase):
         )
 
         self.assertLessEqual(payload["max_new_tokens"], 128)
+
+    def test_fish_audio_cloud_tts_uses_json_bearer_auth(self):
+        captured = {}
+
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def read(self):
+                return b"RIFF-fake-audio"
+
+        def fake_urlopen(request, timeout):
+            captured["url"] = request.full_url
+            captured["timeout"] = timeout
+            captured["headers"] = dict(request.header_items())
+            captured["body"] = request.data
+            return FakeResponse()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = Path(temp_dir) / "voice.wav"
+            runtime_settings = RuntimeSettings(
+                tts_provider="fishspeech",
+                fishspeech_base_url="https://api.fish.audio/v1/tts",
+                fishspeech_api_key="secret-token",
+                fishspeech_voice="speech-host",
+            )
+            with patch("app.services.tts_service.urllib.request.urlopen", side_effect=fake_urlopen):
+                TTSService()._fishspeech("你好，欢迎收看。", "speech-host", output_path, runtime_settings)
+
+            body = json.loads(captured["body"].decode("utf-8"))
+            audio_bytes = output_path.read_bytes()
+
+        self.assertEqual("https://api.fish.audio/v1/tts", captured["url"])
+        self.assertEqual("Bearer secret-token", captured["headers"]["Authorization"])
+        self.assertEqual("application/json", captured["headers"]["Content-type"])
+        self.assertEqual("s2-pro", captured["headers"]["Model"])
+        self.assertEqual("speech-host", body["reference_id"])
+        self.assertNotIn("references", body)
+        self.assertEqual(b"RIFF-fake-audio", audio_bytes)
 
 
 if __name__ == "__main__":

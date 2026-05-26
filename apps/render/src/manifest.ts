@@ -9,6 +9,10 @@ export type SceneManifest = {
   readonly audioPath?: string;
   readonly duration?: number;
   readonly text?: string;
+  readonly sceneType?: "intro" | "problem" | "solution" | "project" | "summary";
+  readonly hook?: string;
+  readonly takeaway?: string;
+  readonly bullets?: readonly string[];
   readonly rank?: number;
   readonly name?: string;
   readonly description?: string;
