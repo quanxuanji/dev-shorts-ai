@@ -91,6 +91,7 @@ export type StudioLayoutProps = {
   isHistoryLoading: boolean;
   historyError: string;
   onCreate: () => void;
+  onNewVideo: () => void;
   onRegenerate: () => void;
   onRender: () => void;
   onApplyStyleChip: (chip: StudioStyleChip) => void;

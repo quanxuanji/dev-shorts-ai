@@ -228,6 +228,25 @@ export function StudioView() {
     ]);
   }
 
+  function startNewVideo() {
+    requestVersionRef.current += 1;
+    seenLogKeysRef.current = new Set();
+    setTask(null);
+    setStudioRuntime(null);
+    setVoiceScript("");
+    setCreateError("");
+    setForm((current) => ({
+      ...current,
+      sourceUrl: "",
+      localFilePath: "",
+      topic: "",
+    }));
+    setRuntimeLines((current) => [
+      ...current.slice(-36),
+      { id: logIdRef.current++, source: "Studio", message: "Started a blank video draft.", level: "success" }
+    ]);
+  }
+
   async function loadHistory(options: { selectLatest?: boolean } = {}) {
     setIsHistoryLoading(true);
     setHistoryError("");
@@ -454,6 +473,7 @@ export function StudioView() {
       isHistoryLoading={isHistoryLoading}
       historyError={historyError}
       onCreate={() => handleCreateTask("script")}
+      onNewVideo={startNewVideo}
       onRegenerate={() => handleCreateTask("script")}
       onRender={() => handleCreateTask("audio")}
       onApplyStyleChip={applyStyleChip}

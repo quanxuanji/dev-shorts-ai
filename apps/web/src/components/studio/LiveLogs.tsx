@@ -73,6 +73,7 @@ function sourceLabel(source: string) {
 
 function messageLabel(message: string) {
   if (message.includes("Ready for a new AI video")) return "准备创建新视频。";
+  if (message.includes("Started a blank video draft")) return "已新建空白视频草稿。";
   if (message.includes("Loaded completed video from")) return "已加载完成的视频预览。";
   if (message.includes("Generating narration and preparing media assets")) return "正在生成口播，并准备后续素材。";
   if (message.includes("Submitting current script for voice and video")) return "正在提交当前脚本，准备生成声音和视频。";

@@ -1,4 +1,4 @@
-import { Activity, Database, RefreshCw } from "lucide-react";
+import { Activity, Database, Plus, RefreshCw } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -41,14 +41,24 @@ export function StudioStatusBar({ props }: { props: StudioLayoutProps }) {
           <span className="font-mono">Runtime</span>
           <span className="truncate font-mono text-[#D6D8DE]">{props.task?.id ? `task ${props.task.id.slice(0, 8)}` : "local mode / waiting"}</span>
         </div>
-        <button
-          type="button"
-          onClick={props.onRefreshRuntime}
-          className="inline-flex h-8 items-center gap-2 rounded-full border border-[#23252B] bg-[#15171A] px-3 text-xs text-[#9EA3AE] transition hover:bg-white/[0.07] hover:text-[#F5F5F7]"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-          refresh runtime
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={props.onNewVideo}
+            className="inline-flex h-8 items-center gap-2 rounded-full border border-[#5DE2FF]/25 bg-[#5DE2FF]/10 px-3 text-xs font-medium text-[#DDFBFF] transition hover:bg-[#5DE2FF]/16 hover:text-white"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            新建视频
+          </button>
+          <button
+            type="button"
+            onClick={props.onRefreshRuntime}
+            className="inline-flex h-8 items-center gap-2 rounded-full border border-[#23252B] bg-[#15171A] px-3 text-xs text-[#9EA3AE] transition hover:bg-white/[0.07] hover:text-[#F5F5F7]"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            刷新状态
+          </button>
+        </div>
       </div>
     </header>
   );
