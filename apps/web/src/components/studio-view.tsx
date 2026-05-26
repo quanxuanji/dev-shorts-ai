@@ -213,6 +213,7 @@ function buildPayload(form: StudioFormState, script: string): CreateTaskPayload 
   const topic = form.topic.trim();
   const sourceUrl = form.sourceUrl.trim();
   const localFilePath = form.localFilePath.trim();
+  const referenceText = form.referenceText.trim();
   const targetStyle = form.targetStyle.trim();
   const editedScript = script.trim();
 
@@ -221,6 +222,7 @@ function buildPayload(form: StudioFormState, script: string): CreateTaskPayload 
     source_url: sourceUrl,
     local_file_path: localFilePath || undefined,
     topic: topic || undefined,
+    reference_text: referenceText || undefined,
     target_style: targetStyle || defaultTargetStyle,
     speaking_style: form.speakingStyle,
     script: editedScript || undefined,
@@ -254,6 +256,7 @@ export function StudioView() {
     sourceUrl: "",
     localFilePath: "",
     topic: "",
+    referenceText: "",
     targetPlatform: "抖音 / 小红书",
     targetStyle: defaultTargetStyle,
     speakingStyle: "tech"
@@ -282,7 +285,7 @@ export function StudioView() {
   const providerWarning = getProviderWarning(settings, task);
   const audioUrl = artifactUrl(artifacts.audio.value);
   const videoUrl = artifactUrl(artifacts.video.value);
-  const canRun = Boolean(form.topic.trim() || form.sourceUrl.trim() || form.localFilePath.trim() || voiceScript.trim());
+  const canRun = Boolean(form.topic.trim() || form.referenceText.trim() || form.sourceUrl.trim() || form.localFilePath.trim() || voiceScript.trim());
   const isScriptReady = Boolean(artifacts.script.value || studioRuntime?.scenes.length || scriptStepStatus(task) === "success");
   const isScriptGenerating = Boolean(task && task.status !== "error" && !isScriptReady && ["queued", "running"].includes(task.status));
 
@@ -294,6 +297,7 @@ export function StudioView() {
       sourceUrl: nextTask.source_url || "",
       localFilePath: nextTask.local_file_path || "",
       topic: nextTask.topic || nextTask.title || current.topic,
+      referenceText: nextTask.reference_text || current.referenceText,
       targetPlatform: current.targetPlatform,
       targetStyle: nextTask.target_style || current.targetStyle,
       speakingStyle: (nextTask.speaking_style as SpeakingStyle | null) || current.speakingStyle
@@ -318,6 +322,7 @@ export function StudioView() {
       sourceUrl: "",
       localFilePath: "",
       topic: "",
+      referenceText: "",
     }));
     setRuntimeLines((current) => [
       ...current.slice(-36),

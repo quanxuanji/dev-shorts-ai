@@ -25,6 +25,7 @@ export type SpeakingStyle = "tech" | "oral" | "viral";
 export interface Task extends Omit<SharedTask, "current_step" | "mode" | "progress" | "speaking_style" | "target_style"> {
   local_file_path?: string | null;
   topic?: string | null;
+  reference_text?: string | null;
   target_style?: string | null;
   speaking_style?: SpeakingStyle | string | null;
   mode?: TaskMode;

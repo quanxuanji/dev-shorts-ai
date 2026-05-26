@@ -145,6 +145,24 @@ function StepOne({ props, status }: { props: StudioLayoutProps; status: SimpleSt
           />
         </label>
 
+        <label className="block">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <span className="text-sm font-medium text-white/72">项目素材 / 参考资料</span>
+            <span className="text-xs text-white/36">项目演示会优先使用这里的事实，不填就只按主题生成框架。</span>
+          </div>
+          <Textarea
+            value={props.form.referenceText}
+            onChange={(event) => props.setForm((current) => ({ ...current, referenceText: event.target.value }))}
+            placeholder={`比如：
+项目 1：https://github.com/owner/repo
+一句话：这个项目解决什么问题
+亮点：为什么本周值得关注
+
+项目 2：...`}
+            className="mt-2 min-h-36 resize-y rounded-2xl border-white/[0.1] bg-[#05070D]/70 p-4 text-sm leading-6 text-white placeholder:text-white/28 focus:border-[#7C5CFF]/50 focus:ring-0"
+          />
+        </label>
+
         <div className="grid gap-4 md:grid-cols-2">
           <label className="block">
             <span className="text-sm font-medium text-white/72">目标平台</span>
@@ -177,7 +195,7 @@ function StepOne({ props, status }: { props: StudioLayoutProps; status: SimpleSt
 
         <label className="block">
           <span className="text-sm font-medium text-white/72">补充要求</span>
-          <span className="ml-2 text-xs text-white/36">做榜单时，建议把项目名 / 链接 / 简介贴在这里，脚本会更准。</span>
+          <span className="ml-2 text-xs text-white/36">这里写表达风格和节奏，不放事实素材。</span>
           <Textarea
             value={props.form.targetStyle}
             onChange={(event) => props.setForm((current) => ({ ...current, targetStyle: event.target.value }))}

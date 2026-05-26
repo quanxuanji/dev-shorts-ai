@@ -13,6 +13,7 @@ export type StudioFormState = {
   sourceUrl: string;
   localFilePath: string;
   topic: string;
+  referenceText: string;
   targetPlatform: string;
   targetStyle: string;
   speakingStyle: SpeakingStyle;
